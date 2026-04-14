@@ -1015,25 +1015,36 @@ ${specs}
 ${kw?`\nKEYWORDS:\n${kw}`:''}
 ${pkg?`\nCONTINUT PACHET: ${pkg}`:''}
 
-REGULI CRITICE:
-- ZERO diacritice in text (a,i,s,t,a fara semne)
+REGULI CRITICE DE FORMAT — RESPECTA TOATE FARA EXCEPTIE:
+- ZERO diacritice in text (a,i,s,t,a fara semne diacritice)
+- ZERO emoji sau simboluri speciale de orice fel (NU folosi: ✓ ✅ ⚡ 🔥 ★ • sau orice alt simbol Unicode special)
+- ZERO asteriscuri pentru bold sau italic (NU scrie **text** sau *text* — scrie text normal)
+- ZERO bare verticale pentru tabele (NU folosi format |col1|col2| sau |---|---|)
+- Pentru bullets/puncte cheie foloseste doar liniuta simpla: - Beneficiu — explicatie
+- Pentru specificatii tehnice foloseste format simplu pe randuri separate:
+  Caracteristica: Valoare
+  Caracteristica: Valoare
+  (NU tabele, NU bare, NU markdown)
+- Titlurile sectiunilor se scriu simplu, cu majuscule, fara formatare speciala
 - Ton: profesional, convingator, beneficii clare
 - Integreaza natural keywordurile
 - Limba output OBLIGATORIE: ${lang}
 
 Genereaza 11 sectiuni. Separa cu ===SECTIUNE_N=== (N de la 1 la 11).
 
-===SECTIUNE_1=== TITLU SEO OPTIMIZAT (max 200 caractere)
-===SECTIUNE_2=== SUBTITLU / TAGLINE (1-2 randuri)
-===SECTIUNE_3=== PARAGRAF INTRODUCTIV (2-3 paragrafe)
-===SECTIUNE_4=== BENEFICII CHEIE (6-8 bullets: checkmark Beneficiu — explicatie)
-===SECTIUNE_5=== FEATURE 1 (titlu + 3-4 randuri)
-===SECTIUNE_6=== FEATURE 2 (titlu + 3-4 randuri)
-===SECTIUNE_7=== FEATURE 3 (titlu + 3-4 randuri)
-===SECTIUNE_8=== FAQ (5 intrebari + raspunsuri)
-===SECTIUNE_9=== GARANTIE & INCREDERE
-===SECTIUNE_10=== CONTINUT PACHET & SPECIFICATII TEHNICE
-===SECTIUNE_11=== CALL TO ACTION (2-3 randuri puternice)`;
+===SECTIUNE_1=== TITLU SEO OPTIMIZAT (max 200 caractere, fara emoji, fara simboluri)
+===SECTIUNE_2=== SUBTITLU / TAGLINE (1-2 randuri, text simplu)
+===SECTIUNE_3=== PARAGRAF INTRODUCTIV (2-3 paragrafe, text curat fara formatare)
+===SECTIUNE_4=== BENEFICII CHEIE (6-8 puncte cu liniuta simpla: - Beneficiu — explicatie)
+===SECTIUNE_5=== FEATURE 1 (titlu simplu cu majuscule + 3-4 randuri text)
+===SECTIUNE_6=== FEATURE 2 (titlu simplu cu majuscule + 3-4 randuri text)
+===SECTIUNE_7=== FEATURE 3 (titlu simplu cu majuscule + 3-4 randuri text)
+===SECTIUNE_8=== FAQ (5 intrebari si raspunsuri, format: Intrebare? / Raspuns.)
+===SECTIUNE_9=== GARANTIE SI INCREDERE (text simplu, fara simboluri)
+===SECTIUNE_10=== CONTINUT PACHET SI SPECIFICATII TEHNICE
+(Continut pachet: lista cu liniute simple
+Specificatii: format Caracteristica: Valoare pe randuri separate, FARA tabele)
+===SECTIUNE_11=== CALL TO ACTION (2-3 randuri puternice, text simplu)`;
 
   try{
     const res = await fetch('/api/generate',{
@@ -1116,13 +1127,15 @@ async function runTranslate(){
 
 Traduce urmatorul listing de produs COMPLET in limba: ${lang.toUpperCase()}
 
-REGULI CRITICE:
-- Pastreaza EXACT aceeasi structura si format
-- Pastreaza separatorii ===SECTIUNE_N=== exact cum sunt
-- ZERO diacritice in output (inlocuieste literele speciale cu varianta fara semne)
-- Traduce NATURAL, nu literal — adapteaza expresiile pentru piata locala
-- Pastreaza toate emoji-urile, simbolurile (✓ ⚡ etc.) exact ca in original
-- Nu adauga si nu sterge nicio sectiune
+REGULI CRITICE DE FORMAT:
+- Pastreaza EXACT aceeasi structura si separatorii ===SECTIUNE_N===
+- ZERO diacritice in output
+- ZERO emoji sau simboluri speciale
+- ZERO asteriscuri pentru bold (**text**)
+- ZERO bare verticale pentru tabele (|col|)
+- Pentru bullets foloseste doar liniuta simpla: - Punct
+- Pentru specificatii foloseste format: Caracteristica: Valoare
+- Traduce NATURAL, adapteaza pentru piata locala
 
 LISTING DE TRADUS:
 ${fullListing}`;
