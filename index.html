@@ -989,7 +989,6 @@ async function runGenerate(){
     const {count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).gte('created_at',som.toISOString());
     if(count>=5){ document.getElementById('limitWarn').style.display='block'; return; }
   }
-  }
   const lang = document.getElementById('gLang').value;
   const kw = document.getElementById('gKeywords').value.trim();
   const cat = document.getElementById('gCategory').value.trim();
