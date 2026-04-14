@@ -213,7 +213,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .limit-warn a{color:var(--accent);cursor:pointer}
 .gen-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:12px 16px;font-size:13px;margin-top:14px;display:none}
 
-/* TRANSLATE BAR */
+/* TIMER & ESTIMATE */
+.time-estimate{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;padding:8px 0;display:none}
+.time-estimate.show{display:block}
+.time-estimate .timer{color:var(--accent);font-weight:600}
+.credits-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);padding:10px 16px;margin-bottom:16px;flex-wrap:wrap}
+.credits-val{font-family:var(--display);font-size:18px;font-weight:800;color:var(--accent)}
+.credits-lbl{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em}
+.no-credits-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.no-credits-modal.show{display:flex}
+.no-credits-box{background:var(--surface);border:1px solid var(--border);padding:32px;max-width:400px;width:100%;text-align:center}
+.no-credits-box h3{font-family:var(--display);font-size:20px;font-weight:800;margin-bottom:10px}
+.no-credits-box p{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.6}
+.free-trans-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border:1px solid var(--border);color:var(--muted);margin-left:8px}
+.free-trans-badge.used{border-color:var(--accent2);color:var(--accent2)}
 .translate-bar{display:flex;align-items:center;gap:10px;background:rgba(232,255,71,.04);border:1px solid rgba(232,255,71,.15);padding:12px 16px;margin-bottom:16px;flex-wrap:wrap}
 .translate-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;white-space:nowrap}
 .translate-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:7px 12px;outline:none;flex:1;min-width:160px;transition:border-color .15s;cursor:pointer}
@@ -641,6 +654,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         <button class="gen-btn" id="genMainBtn" onclick="runGenerate()">
           ⚡ GENEREAZA LISTING COMPLET
         </button>
+        <div class="time-estimate" id="genTimeEstimate">
+          Timp estimat: <span class="timer" id="genTimer">~45 sec</span> &nbsp;·&nbsp; <span id="genElapsed">0s</span> scurse
+        </div>
         <div class="gen-err" id="genErr"></div>
 
         <div id="genOutput" style="display:none" class="output-wrap">
@@ -667,6 +683,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
           <!-- TRANSLATE BAR -->
           <div class="translate-bar">
             <div class="translate-label">🌍 Traduce listing-ul in:</div>
+            <div id="transCreditsInfo" style="font-family:var(--mono);font-size:10px;color:var(--muted)">
+              Traduceri gratuite ramase: <span id="freeTransLeft" style="color:var(--accent);font-weight:700">3</span>/3
+              &nbsp;·&nbsp; Credite cont: <span id="creditsLeft" style="color:var(--text)">0</span>
+            </div>
             <select id="translateLang" class="translate-select">
               <option value="">— Alege limba —</option>
               <option value="engleza">🇬🇧 Engleza</option>
@@ -689,6 +709,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
             </button>
           </div>
           <div class="gen-err" id="translateErr" style="display:none;margin:0 0 12px"></div>
+          <div class="time-estimate" id="transTimeEstimate">
+            Timp estimat: <span class="timer">~30 sec</span> &nbsp;·&nbsp; <span id="transElapsed">0s</span> scurse
+          </div>
 
           <div id="sectionsWrap"></div>
         </div>
@@ -742,6 +765,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- NO CREDITS MODAL -->
+<div class="no-credits-modal" id="noCreditsModal">
+  <div class="no-credits-box">
+    <h3>Credite insuficiente</h3>
+    <p>Ai folosit cele 3 traduceri gratuite pentru acest listing.<br>Ai nevoie de credite extra pentru traduceri suplimentare.<br><br>
+    <strong style="color:var(--accent)">10 credite = 2€ &nbsp;·&nbsp; 50 credite = 8€ &nbsp;·&nbsp; 100 credite = 14€</strong>
+    </p>
+    <button class="btn-xl accent" style="width:100%;font-size:14px;margin-bottom:10px" onclick="goPage('sett');closeNoCredits()">Cumpara credite</button>
+    <button class="out-btn" style="width:100%" onclick="closeNoCredits()">Inchide</button>
+  </div>
+</div>
 
 <script>
 // ============ CONFIG ============
@@ -1009,11 +1044,16 @@ async function runGenerate(){
   listingName = name;
   const platMap={emag:'eMAG Marketplace (Romania)',amazon:'Amazon',ebay:'eBay',site:'site propriu',universal:'marketplace universal'};
   const btn = document.getElementById('genMainBtn');
-  btn.disabled=true; btn.innerHTML=`<div class="load-bar"></div>${t('generating')}`;
+  btn.disabled=true; btn.innerHTML=`<div class="load-bar"></div>Se genereaza...`;
   document.getElementById('genErr').style.display='none';
   document.getElementById('genOutput').style.display='none';
   document.getElementById('saveBtn').textContent='💾 SALVEAZA';
   document.getElementById('saveBtn').disabled=false;
+  currentListingId = null;
+  currentFreeTransUsed = 0;
+  document.getElementById('freeTransLeft').textContent='3';
+  document.getElementById('creditsLeft').textContent=profile?.credits||0;
+  startTimer('genElapsed','genTimeEstimate');
   const prompt=`Esti un specialist senior in copywriting pentru e-commerce. Genereaza un listing premium complet.
 
 PRODUS: ${name}
@@ -1075,6 +1115,7 @@ Specificatii: format Caracteristica: Valoare pe randuri separate, FARA tabele)
   }catch(e){
     showGenErr('Eroare: '+e.message);
   }finally{
+    stopTimer('genTimeEstimate');
     btn.disabled=false; btn.innerHTML='⚡ GENEREAZA LISTING COMPLET';
   }
 }
@@ -1103,6 +1144,38 @@ function cleanText(text){
     // Curata spatii si randuri goale multiple
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+// ============ TIMER HELPERS ============
+let timerInterval = null;
+function startTimer(elapsedId, estimateId){
+  let sec = 0;
+  document.getElementById(estimateId).classList.add('show');
+  document.getElementById(elapsedId).textContent = '0s';
+  timerInterval = setInterval(()=>{
+    sec++;
+    document.getElementById(elapsedId).textContent = sec+'s';
+  }, 1000);
+}
+function stopTimer(estimateId){
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById(estimateId).classList.remove('show');
+}
+
+// ============ CREDITS ============
+let currentListingId = null;
+let currentFreeTransUsed = 0;
+
+function closeNoCredits(){ document.getElementById('noCreditsModal').classList.remove('show'); }
+
+async function updateTransCreditsUI(listingId){
+  if(!listingId){ document.getElementById('freeTransLeft').textContent='3'; return; }
+  const {data:l} = await db.from('listings').select('free_translations_used').eq('id',listingId).single();
+  const used = l?.free_translations_used||0;
+  currentFreeTransUsed = used;
+  document.getElementById('freeTransLeft').textContent = Math.max(0, 3-used);
+  document.getElementById('creditsLeft').textContent = profile?.credits||0;
 }
 
 function renderSections(secs, plat){
@@ -1167,7 +1240,8 @@ async function runRewrite(){
   }
   document.getElementById('humanizeErr').style.display='none';
   const btn = document.getElementById('rewriteBtn');
-  btn.disabled=true; btn.innerHTML='<div class="load-bar"></div>Se rescrie...';
+  btn.disabled=true; btn.innerHTML='<div class="load-bar"></div>Se rescrie... (~40 sec)';
+  startTimer('genElapsed','genTimeEstimate');
 
   const fullListing = sections.map((s,i)=>`===SECTIUNE_${i+1}===\n${s}`).join('\n\n');
 
@@ -1211,6 +1285,7 @@ ${fullListing}`;
     document.getElementById('humanizeErr').style.display='block';
     document.getElementById('humanizeErr').textContent='Eroare: '+e.message;
   }finally{
+    stopTimer('genTimeEstimate');
     btn.disabled=false; btn.innerHTML='Rescrie natural';
   }
 }
@@ -1220,9 +1295,18 @@ async function runTranslate(){
   const errEl = document.getElementById('translateErr');
   if(!lang){ errEl.style.display='block'; errEl.textContent='Selecteaza o limba pentru traducere.'; return; }
   if(!sections.length){ errEl.style.display='block'; errEl.textContent='Genereaza un listing mai intai.'; return; }
+  // Verifica credite
+  const freeLeft = 3 - currentFreeTransUsed;
+  if(freeLeft <= 0){
+    const credits = profile?.credits||0;
+    if(credits <= 0){ document.getElementById('noCreditsModal').classList.add('show'); return; }
+    await db.from('profiles').update({credits: credits-1}).eq('id', user.id);
+    if(profile) profile.credits = credits-1;
+  }
   errEl.style.display='none';
   const btn = document.getElementById('translateBtn');
   btn.disabled=true; btn.innerHTML='<div class="load-bar"></div>Se traduce...';
+  startTimer('transElapsed','transTimeEstimate');
 
   const fullListing = sections.map((s,i)=>`===SECTIUNE_${i+1}===\n${s}`).join('\n\n');
 
@@ -1261,10 +1345,25 @@ ${fullListing}`;
     document.getElementById('saveBtn').textContent='💾 SALVEAZA';
     document.getElementById('saveBtn').disabled=false;
     document.getElementById('translateLang').value='';
+    // Salveaza traducerea in listing curent
+    if(currentListingId){
+      const newFreeUsed = Math.min(currentFreeTransUsed+1, 3);
+      const {data:cur} = await db.from('listings').select('translations').eq('id',currentListingId).single();
+      const trans = cur?.translations||{};
+      trans[lang] = translated;
+      await db.from('listings').update({translations:trans, free_translations_used:newFreeUsed}).eq('id',currentListingId);
+      currentFreeTransUsed = newFreeUsed;
+      updateTransCreditsUI(currentListingId);
+    }
+    document.getElementById('outPlatLabel').textContent += ' → '+lang.charAt(0).toUpperCase()+lang.slice(1);
+    document.getElementById('saveBtn').textContent='💾 SALVEAZA';
+    document.getElementById('saveBtn').disabled=false;
+    document.getElementById('translateLang').value='';
     toast('Listing tradus in '+lang+'!','ok');
   }catch(e){
     errEl.style.display='block'; errEl.textContent='Eroare: '+e.message;
   }finally{
+    stopTimer('transTimeEstimate');
     btn.disabled=false; btn.innerHTML='⚡ TRADUCE';
   }
 }
@@ -1274,13 +1373,21 @@ async function saveListing(){
   const btn = document.getElementById('saveBtn');
   btn.disabled=true; btn.textContent='Se salveaza...';
   const obj={}; sections.forEach((s,i)=>obj[i]=s);
-  const {error} = await db.from('listings').insert({
+  const { data: saved, error } = await db.from('listings').insert({
     user_id:user.id, product_name:listingName, platform:platform,
     language:document.getElementById('gLang').value,
-    sections:obj, keywords:document.getElementById('gKeywords').value.trim()
-  });
-  if(error){ btn.disabled=false; btn.textContent='💾 SALVEAZA'; toast('Eroare: '+error.message,'err'); }
-  else{ btn.textContent=t('saved'); toast('Listing salvat!','ok'); }
+    sections:obj, keywords:document.getElementById('gKeywords').value.trim(),
+    translations:{}, free_translations_used:0
+  }).select().single();
+
+  if(error){
+    btn.disabled=false; btn.textContent='💾 SALVEAZA'; toast('Eroare: '+error.message,'err');
+  } else {
+    currentListingId = saved.id;
+    currentFreeTransUsed = 0;
+    updateTransCreditsUI(saved.id);
+    btn.textContent=t('saved'); toast('Listing salvat!','ok');
+  }
 }
 
 function showGenErr(msg){
