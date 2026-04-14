@@ -213,6 +213,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .limit-warn a{color:var(--accent);cursor:pointer}
 .gen-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:12px 16px;font-size:13px;margin-top:14px;display:none}
 
+/* TRANSLATE BAR */
+.translate-bar{display:flex;align-items:center;gap:10px;background:rgba(232,255,71,.04);border:1px solid rgba(232,255,71,.15);padding:12px 16px;margin-bottom:16px;flex-wrap:wrap}
+.translate-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;white-space:nowrap}
+.translate-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:7px 12px;outline:none;flex:1;min-width:160px;transition:border-color .15s;cursor:pointer}
+.translate-select:focus{border-color:var(--accent)}
+.translate-btn{padding:8px 20px;background:var(--accent);color:#000;border:none;font-family:var(--display);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;position:relative;overflow:hidden}
+.translate-btn:hover:not(:disabled){background:#f0ff60}
+.translate-btn:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:768px){
+  .translate-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .translate-btn{width:100%;padding:10px}
+}
+
 /* Settings */
 .settings-card{background:var(--surface);border:1px solid var(--border);padding:28px;max-width:500px}
 .settings-row{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
@@ -638,6 +651,33 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
               <button class="out-btn" onclick="copyAll()">COPIAZA TOT</button>
             </div>
           </div>
+
+          <!-- TRANSLATE BAR -->
+          <div class="translate-bar">
+            <div class="translate-label">🌍 Traduce listing-ul in:</div>
+            <select id="translateLang" class="translate-select">
+              <option value="">— Alege limba —</option>
+              <option value="engleza">🇬🇧 Engleza</option>
+              <option value="bulgara">🇧🇬 Bulgara</option>
+              <option value="maghiara">🇭🇺 Maghiara</option>
+              <option value="germana">🇩🇪 Germana</option>
+              <option value="franceza">🇫🇷 Franceza</option>
+              <option value="spaniola">🇪🇸 Spaniola</option>
+              <option value="italiana">🇮🇹 Italiana</option>
+              <option value="poloneza">🇵🇱 Poloneza</option>
+              <option value="ceha">🇨🇿 Ceha</option>
+              <option value="slovaca">🇸🇰 Slovaca</option>
+              <option value="croata">🇭🇷 Croata</option>
+              <option value="rusa">🇷🇺 Rusa</option>
+              <option value="turca">🇹🇷 Turca</option>
+              <option value="romana">🇷🇴 Romana</option>
+            </select>
+            <button class="translate-btn" id="translateBtn" onclick="runTranslate()">
+              ⚡ TRADUCE
+            </button>
+          </div>
+          <div class="gen-err" id="translateErr" style="display:none;margin:0 0 12px"></div>
+
           <div id="sectionsWrap"></div>
         </div>
       </div>
@@ -1053,6 +1093,58 @@ function copySec(e,i){
 function copyAll(){
   const full = sections.map((s,i)=>`--- ${SEC_NAMES[i]} ---\n${s}`).join('\n\n');
   navigator.clipboard.writeText(full).then(()=>toast('Listing copiat complet!','ok'));
+}
+
+async function runTranslate(){
+  const lang = document.getElementById('translateLang').value;
+  const errEl = document.getElementById('translateErr');
+  if(!lang){ errEl.style.display='block'; errEl.textContent='Selecteaza o limba pentru traducere.'; return; }
+  if(!sections.length){ errEl.style.display='block'; errEl.textContent='Genereaza un listing mai intai.'; return; }
+  errEl.style.display='none';
+  const btn = document.getElementById('translateBtn');
+  btn.disabled=true; btn.innerHTML='<div class="load-bar"></div>Se traduce...';
+
+  const fullListing = sections.map((s,i)=>`===SECTIUNE_${i+1}===\n${s}`).join('\n\n');
+
+  const prompt=`Esti un traducator expert pentru listari de produse pe marketplace-uri online.
+
+Traduce urmatorul listing de produs COMPLET in limba: ${lang.toUpperCase()}
+
+REGULI CRITICE:
+- Pastreaza EXACT aceeasi structura si format
+- Pastreaza separatorii ===SECTIUNE_N=== exact cum sunt
+- ZERO diacritice in output (inlocuieste literele speciale cu varianta fara semne)
+- Traduce NATURAL, nu literal — adapteaza expresiile pentru piata locala
+- Pastreaza toate emoji-urile, simbolurile (✓ ⚡ etc.) exact ca in original
+- Nu adauga si nu sterge nicio sectiune
+
+LISTING DE TRADUS:
+${fullListing}`;
+
+  try{
+    const res = await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Eroare traducere');
+    const text = data.text;
+    const parts = text.split(/===SECTIUNE_\d+===/);
+    const translated = parts.slice(1).map(s=>s.replace(/^[^\n]*\n/,'').trim()).filter(s=>s);
+    if(!translated.length) throw new Error('Traducerea nu a returnat sectiuni valide.');
+    sections = translated;
+    renderSections(sections, platform);
+    document.getElementById('outPlatLabel').textContent += ` → ${lang.charAt(0).toUpperCase()+lang.slice(1)}`;
+    document.getElementById('saveBtn').textContent='💾 SALVEAZA';
+    document.getElementById('saveBtn').disabled=false;
+    document.getElementById('translateLang').value='';
+    toast('Listing tradus in '+lang+'!','ok');
+  }catch(e){
+    errEl.style.display='block'; errEl.textContent='Eroare: '+e.message;
+  }finally{
+    btn.disabled=false; btn.innerHTML='⚡ TRADUCE';
+  }
 }
 
 async function saveListing(){
