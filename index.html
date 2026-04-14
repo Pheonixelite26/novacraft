@@ -888,11 +888,14 @@ async function loadDash(){
   if(!user) return;
   const name = profile?.full_name || user.email.split('@')[0];
   document.getElementById('greetName').textContent = name;
+  if(plan==='admin'){
+    document.getElementById('greetName').innerHTML = name + ' <span style="font-size:11px;background:var(--accent);color:#000;padding:2px 8px;font-family:var(--mono);font-weight:700;vertical-align:middle">ADMIN</span>';
+  }
   const {data:all, count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false});
   document.getElementById('stTotal').textContent = count||0;
   const plan = profile?.plan||'free';
   document.getElementById('stPlan').textContent = plan.toUpperCase();
-  const lim = plan==='agency'?'∞':plan==='pro'?50:plan==='starter'?15:5;
+  const lim = plan==='admin'?'∞':plan==='agency'?'∞':plan==='pro'?50:plan==='starter'?15:5;
   document.getElementById('stPlanHint').textContent = lim+' listari/luna';
   const som = new Date(); som.setDate(1); som.setHours(0,0,0,0);
   const mth = (all||[]).filter(l=>new Date(l.created_at)>=som).length;
@@ -978,10 +981,14 @@ async function runGenerate(){
     return;
   }
   // Check monthly limit
-  if(profile?.plan==='free'||!profile?.plan){
+  // Admin si Agency au acces nelimitat
+  if(profile?.plan==='admin'||profile?.plan==='agency') {
+    // nelimitat — continua
+  } else if(profile?.plan==='free'||!profile?.plan){
     const som = new Date(); som.setDate(1); som.setHours(0,0,0,0);
     const {count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).gte('created_at',som.toISOString());
     if(count>=5){ document.getElementById('limitWarn').style.display='block'; return; }
+  }
   }
   const lang = document.getElementById('gLang').value;
   const kw = document.getElementById('gKeywords').value.trim();
