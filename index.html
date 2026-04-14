@@ -652,6 +652,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
             </div>
           </div>
 
+          <!-- HUMANIZE BAR -->
+          <div class="translate-bar" style="border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.04)">
+            <div class="translate-label" style="color:var(--accent2)">✦ Optimizeaza textul:</div>
+            <button class="translate-btn" id="humanizeBtn" onclick="runHumanize()" style="background:var(--accent2);color:#fff">
+              Curata formatarea
+            </button>
+            <button class="translate-btn" id="rewriteBtn" onclick="runRewrite()" style="background:transparent;border:1px solid var(--accent2);color:var(--accent2)">
+              Rescrie natural
+            </button>
+          </div>
+          <div class="gen-err" id="humanizeErr" style="display:none;margin:0 0 12px"></div>
+
           <!-- TRANSLATE BAR -->
           <div class="translate-bar">
             <div class="translate-label">🌍 Traduce listing-ul in:</div>
@@ -1136,6 +1148,71 @@ function copySec(e,i){
 function copyAll(){
   const full = sections.map((s,i)=>`--- ${SEC_NAMES[i]} ---\n${s}`).join('\n\n');
   navigator.clipboard.writeText(full).then(()=>toast('Listing copiat complet!','ok'));
+}
+
+function runHumanize(){
+  if(!sections.length) return;
+  sections = sections.map(s => cleanText(s));
+  renderSections(sections, platform);
+  document.getElementById('saveBtn').textContent='💾 SALVEAZA';
+  document.getElementById('saveBtn').disabled=false;
+  toast('Formatare curatata!','ok');
+}
+
+async function runRewrite(){
+  if(!sections.length){
+    document.getElementById('humanizeErr').style.display='block';
+    document.getElementById('humanizeErr').textContent='Genereaza un listing mai intai.';
+    return;
+  }
+  document.getElementById('humanizeErr').style.display='none';
+  const btn = document.getElementById('rewriteBtn');
+  btn.disabled=true; btn.innerHTML='<div class="load-bar"></div>Se rescrie...';
+
+  const fullListing = sections.map((s,i)=>`===SECTIUNE_${i+1}===\n${s}`).join('\n\n');
+
+  const prompt=`Esti un copywriter expert roman pentru e-commerce. Rescrie urmatorul listing de produs astfel incat sa para scris natural de un om, nu de un AI.
+
+REGULI STRICTE:
+- ZERO diacritice
+- ZERO emoji sau simboluri speciale
+- ZERO asteriscuri sau markdown (**text**, ##, ---)
+- ZERO cuvinte tipice AI: "dinamic", "inovator", "revolutionar", "exceptional", "remarcabil", "perfect", "ideal", "unic", "de inalta calitate", "performant", "dedicat"
+- Foloseste limbaj simplu, direct, ca un om real care vinde un produs
+- Propozitii scurte si clare, nu lungi si ornamentate
+- Pastreaza toate informatiile tehnice exacte
+- Pastreaza separatorii ===SECTIUNE_N=== exact
+- Pastreaza structura celor 11 sectiuni
+- Specificatiile tehnice: format Caracteristica: Valoare pe randuri separate
+- Bullets: format simplu cu liniuta - Punct cheie
+- Tonul sa fie al unui vanzator roman serios, nu al unui robot
+
+LISTING DE RESCRIS:
+${fullListing}`;
+
+  try{
+    const res = await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Eroare');
+    const text = data.text;
+    const parts = text.split(/===SECTIUNE_\d+===/);
+    const rewritten = parts.slice(1).map(s=>cleanText(s.replace(/^[^\n]*\n/,'').trim())).filter(s=>s);
+    if(!rewritten.length) throw new Error('Rescrierea nu a returnat rezultate valide.');
+    sections = rewritten;
+    renderSections(sections, platform);
+    document.getElementById('saveBtn').textContent='💾 SALVEAZA';
+    document.getElementById('saveBtn').disabled=false;
+    toast('Listing rescris natural!','ok');
+  }catch(e){
+    document.getElementById('humanizeErr').style.display='block';
+    document.getElementById('humanizeErr').textContent='Eroare: '+e.message;
+  }finally{
+    btn.disabled=false; btn.innerHTML='Rescrie natural';
+  }
 }
 
 async function runTranslate(){
