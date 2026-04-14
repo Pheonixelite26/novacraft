@@ -472,6 +472,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   <div class="section-wrap" style="padding-top:0">
     <div class="section-eyebrow" data-i18n="priceEyebrow">// PLANURI</div>
     <h2 class="section-h2" data-i18n="priceTitle">Simplu si transparent</h2>
+    <div style="text-align:center;margin-bottom:16px;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      Toate planurile includ <span style="color:var(--accent);font-weight:700">3 traduceri gratuite</span> per listing · Traduceri extra prin credite
+    </div>
     <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
       <div class="pricing-card">
         <div class="price-plan">FREE</div>
@@ -480,9 +483,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         <ul class="price-feats">
           <li data-i18n="pf1a">5 listari in prima luna</li>
           <li data-i18n="pf1b">Toate cele 11 sectiuni</li>
-          <li data-i18n="pf1c">Traduceri incluse</li>
+          <li style="color:var(--accent)">3 traduceri gratuite / listing</li>
           <li data-i18n="pf1d">Salvare listing</li>
           <li data-i18n="pf1e">Fara card necesar</li>
+          <li style="color:var(--muted);font-size:11px">0 credite extra</li>
         </ul>
         <button class="price-btn" data-i18n="priceBtn1" onclick="openModal('register')">Incepe Gratuit</button>
       </div>
@@ -493,9 +497,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         <ul class="price-feats">
           <li data-i18n="pf2a">15 listari pe luna</li>
           <li data-i18n="pf2b">Toate cele 11 sectiuni</li>
-          <li data-i18n="pf2c">Toate limbile</li>
+          <li style="color:var(--accent)">3 traduceri gratuite / listing</li>
           <li data-i18n="pf2d">Istoric complet</li>
           <li data-i18n="pf2e">Suport email</li>
+          <li style="color:var(--accent2)">+ 10 credite traduceri / luna</li>
         </ul>
         <button class="price-btn" data-i18n="priceBtn2" onclick="openModal('register')">Alege Starter</button>
       </div>
@@ -507,9 +512,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         <ul class="price-feats">
           <li data-i18n="pf3a">50 listari pe luna</li>
           <li data-i18n="pf3b">Modul Poze Premium</li>
-          <li data-i18n="pf3c">Toate limbile</li>
+          <li style="color:var(--accent)">3 traduceri gratuite / listing</li>
           <li data-i18n="pf3d">Istoric nelimitat</li>
           <li data-i18n="pf3e">Export ZIP</li>
+          <li style="color:var(--accent2)">+ 50 credite traduceri / luna</li>
           <li data-i18n="pf3f">Suport prioritar</li>
         </ul>
         <button class="price-btn" data-i18n="priceBtn3" onclick="openModal('register')">Alege Pro</button>
@@ -520,13 +526,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         <div class="price-desc" data-i18n="price4Desc">Pentru agentii si reselleri</div>
         <ul class="price-feats">
           <li data-i18n="pf4a">Listari nelimitate</li>
+          <li style="color:var(--accent)">3 traduceri gratuite / listing</li>
           <li data-i18n="pf4b">Multi-brand / client</li>
           <li data-i18n="pf4c">API Access</li>
-          <li data-i18n="pf4d">White-label optional</li>
+          <li style="color:var(--accent2)">+ 200 credite traduceri / luna</li>
           <li data-i18n="pf4e">Suport dedicat</li>
         </ul>
         <button class="price-btn" data-i18n="priceBtn4" onclick="openModal('register')">Alege Agency</button>
       </div>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      Credite extra disponibile separat: <span style="color:var(--text)">10 credite = 2€ &nbsp;·&nbsp; 50 credite = 8€ &nbsp;·&nbsp; 100 credite = 14€</span>
     </div>
   </div>
 
@@ -570,12 +580,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
           <div class="stat-box">
             <div class="stat-lbl">// LUNA ACEASTA</div>
             <div class="stat-val" id="stMonth">0</div>
-            <div class="stat-hint" id="stMonthHint">din 3 disponibile</div>
+            <div class="stat-hint" id="stMonthHint">din 5 disponibile</div>
           </div>
           <div class="stat-box">
             <div class="stat-lbl">// PLAN ACTIV</div>
             <div class="stat-val" style="font-size:20px;margin-top:6px" id="stPlan">FREE</div>
-            <div class="stat-hint" id="stPlanHint">3 listari/luna</div>
+            <div class="stat-hint" id="stPlanHint">5 listari/luna</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-lbl">// CREDITE TRADUCERI</div>
+            <div class="stat-val" id="stCredits">0</div>
+            <div class="stat-hint">credite extra disponibile</div>
           </div>
         </div>
         <div class="blk-header">
@@ -736,6 +751,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
           <div class="settings-row">
             <div class="s-row-label">PLAN ACTIV</div>
             <div class="s-row-val" style="font-family:var(--display);font-size:20px;font-weight:800;color:var(--accent)" id="settPlan">FREE</div>
+          </div>
+          <div class="settings-row">
+            <div class="s-row-label">CREDITE TRADUCERI</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+              <div style="font-family:var(--display);font-size:28px;font-weight:800;color:var(--accent)" id="settCredits">0</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.5">credite disponibile<br><span style="color:var(--text)">3 traduceri gratuite</span> incluse per listing</div>
+            </div>
           </div>
           <div class="settings-row">
             <div class="s-row-label">LIMBA INTERFATA</div>
@@ -948,6 +970,7 @@ async function loadDash(){
   const mth = (all||[]).filter(l=>new Date(l.created_at)>=som).length;
   document.getElementById('stMonth').textContent = mth;
   document.getElementById('stMonthHint').textContent = 'din '+lim+' disponibile';
+  document.getElementById('stCredits').textContent = plan==='admin'?'∞':(profile?.credits||0);
   const recent = (all||[]).slice(0,5);
   document.getElementById('dashRecent').innerHTML = recent.length
     ? recent.map(l=>listingRow(l,false)).join('')
@@ -1003,6 +1026,7 @@ function loadSett(){
   if(!user) return;
   document.getElementById('settEmail').textContent = user.email;
   document.getElementById('settPlan').textContent = (profile?.plan||'FREE').toUpperCase();
+  document.getElementById('settCredits').textContent = profile?.plan==='admin'?'∞':(profile?.credits||0);
   document.getElementById('settLang').value = uiLang;
 }
 
