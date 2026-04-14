@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaCraft — Generator Premium de Listari</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0d0f;--surface:#141618;--surface2:#1c1f22;--border:#2a2d32;
+  --accent:#e8ff47;--accent2:#ff6b35;--text:#e8eaed;--muted:#6b7280;
+  --success:#4ade80;--danger:#ef4444;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* NAV */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(12,13,15,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-0.02em;cursor:pointer;user-select:none}
+.nav-logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.lang-picker{position:relative;user-select:none}
+.lang-trigger{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px 6px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.04em;white-space:nowrap}
+.lang-trigger:hover{border-color:var(--accent)}
+.lang-trigger .lf{font-size:17px;line-height:1}
+.lang-trigger .lcode{color:var(--text);font-weight:500}
+.lang-trigger .larr{color:var(--muted);font-size:9px;margin-left:2px;transition:transform .2s}
+.lang-trigger.open .larr{transform:rotate(180deg)}
+.lang-drop{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border);min-width:170px;z-index:250;display:none;box-shadow:0 12px 32px rgba(0,0,0,.5);animation:dropIn .15s ease}
+@keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.lang-drop.open{display:block}
+.lang-opt{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;border-left:2px solid transparent}
+.lang-opt:hover{background:var(--surface2);color:var(--text)}
+.lang-opt.cur{color:var(--accent);border-left-color:var(--accent);background:rgba(232,255,71,.04)}
+.lang-opt .lof{font-size:16px}
+.lang-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;outline:none;transition:border-color .15s}
+.lang-select:focus{border-color:var(--accent)}
+.nav-btn{padding:7px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.nav-btn.primary:hover{background:#f0ff60}
+.nav-user-info{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* VIEWS */
+.view{display:none;padding-top:58px;min-height:100vh}
+.view.active{display:block}
+
+/* ===== LANDING ===== */
+.hero{min-height:calc(100vh - 58px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-150px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(232,255,71,.07) 0%,transparent 65%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid rgba(232,255,71,.25);padding:4px 14px;margin-bottom:28px;letter-spacing:.12em;animation:fadeDown .6s ease both}
+.hero h1{font-family:var(--display);font-size:clamp(38px,6.5vw,76px);font-weight:800;letter-spacing:-.03em;line-height:1.03;max-width:820px;margin-bottom:22px;animation:fadeDown .7s ease .1s both}
+.hero h1 em{color:var(--accent);font-style:normal}
+.hero h1 span{color:var(--muted)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:540px;margin-bottom:44px;line-height:1.75;animation:fadeDown .7s ease .2s both}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:fadeDown .7s ease .3s both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+
+.btn-xl{padding:15px 36px;font-family:var(--display);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;border:none}
+.btn-xl.accent{background:var(--accent);color:#000}
+.btn-xl.accent:hover{background:#f0ff60;transform:translateY(-2px)}
+.btn-xl.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-xl.ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+.hero-logos{margin-top:56px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;animation:fadeDown .8s ease .5s both}
+.hero-logos-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em}
+.logo-pill{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--border);padding:4px 12px}
+
+.section-wrap{padding:80px 24px;max-width:1100px;margin:0 auto}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;text-align:center;margin-bottom:12px}
+.section-h2{font-family:var(--display);font-size:clamp(26px,4vw,44px);font-weight:800;text-align:center;margin-bottom:52px;letter-spacing:-.025em;line-height:1.1}
+
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px}
+.feature-card{background:var(--surface);border:1px solid var(--border);padding:28px 28px 32px;transition:all .2s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.feature-card:hover::before{transform:scaleX(1)}
+.feature-card:hover{border-color:rgba(232,255,71,.2);transform:translateY(-2px)}
+.feature-icon{font-size:30px;margin-bottom:18px}
+.feature-card h3{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:10px}
+.feature-card p{color:var(--muted);font-size:13px;line-height:1.65}
+
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.pricing-card{background:var(--surface);border:1px solid var(--border);padding:32px;position:relative}
+.pricing-card.hot{border-color:var(--accent);background:#141a00}
+.pricing-badge-hot{position:absolute;top:-1px;right:24px;background:var(--accent);color:#000;font-family:var(--mono);font-size:10px;padding:3px 12px;font-weight:700;letter-spacing:.06em}
+.price-plan{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:10px}
+.price-amount{font-family:var(--display);font-size:44px;font-weight:800;line-height:1;margin-bottom:6px}
+.price-amount sub{font-size:16px;color:var(--muted);font-weight:400}
+.price-desc{color:var(--muted);font-size:12px;margin-bottom:24px}
+.price-feats{list-style:none;margin-bottom:28px}
+.price-feats li{font-size:13px;color:var(--muted);padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.price-feats li::before{content:'✓';color:var(--accent);font-family:var(--mono);font-size:11px;flex-shrink:0}
+.price-btn{width:100%;padding:13px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--display);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.pricing-card.hot .price-btn,.price-btn:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+
+.landing-footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.06em}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);padding:36px;width:100%;max-width:420px;position:relative;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-x{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:4px}
+.modal-x:hover{color:var(--text)}
+.modal-logo{font-family:var(--display);font-size:17px;font-weight:800;margin-bottom:6px}
+.modal-logo span{color:var(--accent)}
+.modal-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:26px;margin-top:16px}
+.modal-tab{flex:1;padding:9px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);font-family:var(--display);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.f-group{display:flex;flex-direction:column;gap:5px}
+.f-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em}
+.f-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;width:100%}
+.f-input:focus{border-color:var(--accent)}
+.auth-btn{padding:12px;background:var(--accent);color:#000;border:none;font-family:var(--display);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
+.auth-btn:hover{background:#f0ff60}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.msg-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:10px 14px;font-size:13px;display:none}
+.msg-ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--success);padding:10px 14px;font-size:13px;display:none}
+
+/* ===== APP LAYOUT ===== */
+.app-wrap{display:flex;min-height:calc(100vh - 58px)}
+.sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;position:fixed;top:58px;left:0;bottom:0;overflow-y:auto;z-index:50}
+.sidebar-section{padding:8px 16px 4px;font-family:var(--mono);font-size:9px;color:#3a3f47;letter-spacing:.12em}
+.s-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.04em;transition:all .15s;border-left:2px solid transparent;user-select:none}
+.s-item:hover{color:var(--text);background:var(--surface2)}
+.s-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(232,255,71,.05)}
+.s-icon{font-size:14px;width:18px;text-align:center}
+.main{margin-left:210px;flex:1;overflow-x:hidden}
+
+/* ===== PAGES ===== */
+.page{display:none;padding:36px 32px;max-width:1050px}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.page-sub{color:var(--muted);font-size:13px;margin-bottom:32px}
+
+/* Dashboard */
+.dash-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px}
+.greeting{font-family:var(--display);font-size:22px;font-weight:800}
+.greeting em{color:var(--accent);font-style:normal}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:36px}
+.stat-box{background:var(--surface);border:1px solid var(--border);padding:18px 20px}
+.stat-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.stat-val{font-family:var(--display);font-size:34px;font-weight:800;color:var(--accent);line-height:1}
+.stat-hint{font-size:11px;color:var(--muted);margin-top:5px}
+
+.blk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.blk-title{font-family:var(--display);font-size:15px;font-weight:700}
+.link-btn{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:color .15s;padding:0}
+.link-btn:hover{color:var(--accent)}
+
+.listing-row{background:var(--surface);border:1px solid var(--border);padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s}
+.listing-row:hover{border-color:rgba(232,255,71,.3)}
+.lr-name{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:3px}
+.lr-meta{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.lr-actions{display:flex;gap:8px}
+.ic-btn{padding:5px 12px;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ic-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ic-btn.red:hover{border-color:var(--danger);color:#fca5a5}
+
+.empty-box{text-align:center;padding:52px 20px;border:1px dashed var(--border)}
+.empty-icon{font-size:36px;margin-bottom:14px}
+.empty-box p{color:var(--muted);font-size:13px;margin-bottom:20px}
+
+/* Generator */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.f-full{grid-column:1/-1}
+.f-field{display:flex;flex-direction:column;gap:5px}
+.f-field label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.f-field input,.f-field textarea,.f-field select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:9px 13px;outline:none;transition:border-color .15s;width:100%}
+.f-field input:focus,.f-field textarea:focus,.f-field select:focus{border-color:var(--accent)}
+.f-field textarea{resize:vertical;min-height:96px;line-height:1.5}
+.f-hint{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px}
+.plat-row{display:flex;gap:8px;flex-wrap:wrap}
+.plat-btn{padding:9px 16px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.06em;transition:all .15s}
+.plat-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.06)}
+.plat-btn:hover:not(.active){border-color:#444;color:var(--text)}
+.gen-btn{width:100%;padding:14px;background:var(--accent);color:#000;border:none;cursor:pointer;font-family:var(--display);font-size:15px;font-weight:700;margin-top:8px;transition:all .15s;position:relative;overflow:hidden}
+.gen-btn:hover:not(:disabled){background:#f0ff60;transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.load-bar{position:absolute;bottom:0;left:0;height:3px;background:rgba(0,0,0,.3);animation:lbar 2s ease-in-out infinite}
+@keyframes lbar{0%{width:0;left:0}50%{width:70%;left:0}100%{width:0;left:100%}}
+
+.output-wrap{margin-top:36px}
+.out-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.out-title{font-family:var(--display);font-size:16px;font-weight:700}
+.out-title em{color:var(--accent);font-style:normal}
+.out-actions{display:flex;gap:8px}
+.out-btn{padding:6px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.out-btn:hover{border-color:var(--accent);color:var(--accent)}
+.out-btn.save-btn{border-color:var(--success);color:var(--success)}
+.out-btn.save-btn:hover{background:rgba(74,222,128,.1)}
+.out-btn.save-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.sec-card{background:var(--surface);border:1px solid var(--border);margin-bottom:10px;animation:fadeUp .3s ease forwards;opacity:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.sec-head:hover{background:var(--surface2)}
+.sec-meta{display:flex;align-items:center;gap:10px}
+.sec-n{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(232,255,71,.1);padding:2px 7px;min-width:28px;text-align:center}
+.sec-title{font-family:var(--display);font-size:13px;font-weight:600}
+.sec-copy{padding:4px 10px;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sec-copy:hover,.sec-copy.ok{border-color:var(--success);color:var(--success)}
+.chevron{transition:transform .2s;color:var(--muted);font-size:11px}
+.chevron.open{transform:rotate(180deg)}
+.sec-body{padding:15px;font-size:13px;line-height:1.75;color:#bfc3ca;white-space:pre-wrap;font-family:var(--sans)}
+.sec-body.hidden{display:none}
+
+.limit-warn{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.35);color:#ff6b35;padding:12px 16px;font-size:13px;margin-bottom:18px;display:none}
+.limit-warn a{color:var(--accent);cursor:pointer}
+.gen-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:12px 16px;font-size:13px;margin-top:14px;display:none}
+
+/* Settings */
+.settings-card{background:var(--surface);border:1px solid var(--border);padding:28px;max-width:500px}
+.settings-row{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none;margin-bottom:0}
+.s-row-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px}
+.s-row-val{font-size:14px;color:var(--text)}
+.upgrade-box{background:rgba(232,255,71,.04);border:1px solid rgba(232,255,71,.18);padding:20px;margin-top:20px}
+.upgrade-box h4{font-family:var(--display);font-weight:700;margin-bottom:8px}
+.upgrade-box p{color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.6}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:11px 20px;font-family:var(--mono);font-size:12px;z-index:400;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:none;opacity:1}
+.toast.ok{border-color:var(--success);color:var(--success)}
+.toast.err{border-color:var(--danger);color:#fca5a5}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{width:50px}
+  .s-item span:not(.s-icon){display:none}
+  .sidebar-section{display:none}
+  .main{margin-left:50px}
+  .form-grid{grid-template-columns:1fr}
+  .page{padding:20px 16px}
+  .hero h1{font-size:30px}
+  .pricing-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo" onclick="goHome()">Nova<span>Craft</span></div>
+  <div class="nav-right">
+    <select class="lang-select" id="uiLangSel" onchange="setUILang(this.value)" style="display:none">
+      <option value="ro">RO</option><option value="en">EN</option><option value="hu">HU</option>
+      <option value="bg">BG</option><option value="de">DE</option><option value="fr">FR</option><option value="es">ES</option>
+    </select>
+    <div class="lang-picker" id="langPicker">
+      <button class="lang-trigger" id="langTrigger" onclick="toggleLangDrop(event)">
+        <img class="lf" id="activeLangFlag" src="https://flagcdn.com/24x18/ro.png" alt="RO" style="width:22px;height:16px;object-fit:cover;border-radius:2px">
+        <span class="lcode" id="activeLangCode">RO</span>
+        <span class="larr">▼</span>
+      </button>
+      <div class="lang-drop" id="langDrop">
+        <div class="lang-opt cur" data-lang="ro" onclick="setUILang('ro')"><img class="lof" src="https://flagcdn.com/24x18/ro.png" alt="RO" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Română</span></div>
+        <div class="lang-opt" data-lang="en" onclick="setUILang('en')"><img class="lof" src="https://flagcdn.com/24x18/gb.png" alt="EN" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>English</span></div>
+        <div class="lang-opt" data-lang="hu" onclick="setUILang('hu')"><img class="lof" src="https://flagcdn.com/24x18/hu.png" alt="HU" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Magyar</span></div>
+        <div class="lang-opt" data-lang="bg" onclick="setUILang('bg')"><img class="lof" src="https://flagcdn.com/24x18/bg.png" alt="BG" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Bulgarski</span></div>
+        <div class="lang-opt" data-lang="de" onclick="setUILang('de')"><img class="lof" src="https://flagcdn.com/24x18/de.png" alt="DE" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Deutsch</span></div>
+        <div class="lang-opt" data-lang="fr" onclick="setUILang('fr')"><img class="lof" src="https://flagcdn.com/24x18/fr.png" alt="FR" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Français</span></div>
+        <div class="lang-opt" data-lang="es" onclick="setUILang('es')"><img class="lof" src="https://flagcdn.com/24x18/es.png" alt="ES" style="width:22px;height:16px;object-fit:cover;border-radius:2px"><span>Español</span></div>
+      </div>
+    </div>
+    <div id="navGuest" style="display:flex;gap:8px">
+      <button class="nav-btn" onclick="openModal('login')" id="navLoginBtn">Login</button>
+      <button class="nav-btn primary" onclick="openModal('register')" id="navRegBtn">Incepe Gratuit</button>
+    </div>
+    <div id="navMember" style="display:none;align-items:center;gap:10px">
+      <span class="nav-user-info" id="navEmail"></span>
+      <button class="nav-btn" onclick="doLogout()" id="navLogoutBtn">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-logo">Nova<span>Craft</span></div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabA" data-i18n="modalTabLogin" onclick="switchTab('login')">Login</button>
+      <button class="modal-tab" id="tabB" data-i18n="modalTabReg" onclick="switchTab('register')">Cont Nou</button>
+    </div>
+
+    <div id="formLogin">
+      <div class="auth-form">
+        <div class="msg-err" id="errLogin"></div>
+        <div class="f-group">
+          <div class="f-label" data-i18n="labelEmail">EMAIL</div>
+          <input class="f-input" type="email" id="lEmail" placeholder="email@tau.com" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="f-group">
+          <div class="f-label" data-i18n="labelPass">PAROLA</div>
+          <input class="f-input" type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="auth-btn" id="btnLogin" data-i18n="btnLogin" onclick="doLogin()">Intra in cont</button>
+      </div>
+    </div>
+
+    <div id="formRegister" style="display:none">
+      <div class="auth-form">
+        <div class="msg-err" id="errReg"></div>
+        <div class="msg-ok" id="okReg"></div>
+        <div class="f-group">
+          <div class="f-label" data-i18n="labelName">NUME COMPLET</div>
+          <input class="f-input" type="text" id="rName" placeholder="Numele tau">
+        </div>
+        <div class="f-group">
+          <div class="f-label" data-i18n="labelEmail">EMAIL</div>
+          <input class="f-input" type="email" id="rEmail" placeholder="email@tau.com">
+        </div>
+        <div class="f-group">
+          <div class="f-label" data-i18n="labelPass">PAROLA</div>
+          <input class="f-input" type="password" id="rPass" placeholder="Minim 6 caractere">
+        </div>
+        <button class="auth-btn" id="btnReg" data-i18n="btnRegister" onclick="doRegister()">Creeaza cont gratuit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LANDING ===== -->
+<div class="view active" id="vLanding">
+  <div class="hero">
+    <div class="hero-eyebrow" data-i18n="heroEyebrow">// GENERATOR PREMIUM DE LISTARI</div>
+    <h1 id="heroH1">Listari care <em>vand</em>,<br><span>generate in secunde</span></h1>
+    <p class="hero-sub" data-i18n="heroSub">Primul tool din Romania pentru listari premium pe orice marketplace. Text profesional + Poze + Traduceri automate.</p>
+    <div class="hero-cta">
+      <button class="btn-xl accent" data-i18n="heroCta1" onclick="openModal('register')">Incepe Gratuit</button>
+      <button class="btn-xl ghost" data-i18n="heroCta2" onclick="openModal('login')">Am deja cont</button>
+    </div>
+    <div class="hero-logos">
+      <span class="hero-logos-label" data-i18n="heroFunctOn">FUNCTIONEAZA PE</span>
+      <span class="logo-pill">eMAG</span>
+      <span class="logo-pill">Amazon</span>
+      <span class="logo-pill">eBay</span>
+      <span class="logo-pill">Allegro</span>
+      <span class="logo-pill">Shopify</span>
+      <span class="logo-pill">+ orice</span>
+    </div>
+  </div>
+
+  <div class="section-wrap">
+    <div class="section-eyebrow" data-i18n="featEyebrow">// DE CE NOVACRAFT</div>
+    <h2 class="section-h2" data-i18n="featTitle">Tot ce ai nevoie pentru un listing perfect</h2>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">⚡</div><h3 data-i18n="feat1Title">11 Sectiuni Premium</h3><p data-i18n="feat1Desc">Template complet: titlu SEO, beneficii, features, FAQ, garantie, CTA. Generat in 30 secunde, gata de upload.</p></div>
+      <div class="feature-card"><div class="feature-icon">🌍</div><h3 data-i18n="feat2Title">Orice Limba</h3><p data-i18n="feat2Desc">Genereaza in romana, traduce instant in engleza, bulgara, maghiara, germana sau orice alta limba din lume.</p></div>
+      <div class="feature-card"><div class="feature-icon">🖼️</div><h3 data-i18n="feat3Title">Poze Profesionale</h3><p data-i18n="feat3Desc">Eliminare fundal, infografice cu specificatii, pachet complet imagini eMAG gata de upload. (in curand)</p></div>
+      <div class="feature-card"><div class="feature-icon">🛒</div><h3 data-i18n="feat4Title">Orice Marketplace</h3><p data-i18n="feat4Desc">eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Standardul premium care functioneaza oriunde vinzi.</p></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><h3 data-i18n="feat5Title">Keywords Cerebro</h3><p data-i18n="feat5Desc">Importa direct CSV din Helium 10 Cerebro. Keywordurile se integreaza automat si natural in listing.</p></div>
+      <div class="feature-card"><div class="feature-icon">💾</div><h3 data-i18n="feat6Title">Istoric Complet</h3><p data-i18n="feat6Desc">Toate listingurile salvate in contul tau. Acces oricand, editare, export, refolosire pentru clienti noi.</p></div>
+    </div>
+  </div>
+
+  <div class="section-wrap" style="padding-top:0">
+    <div class="section-eyebrow" data-i18n="priceEyebrow">// PLANURI</div>
+    <h2 class="section-h2" data-i18n="priceTitle">Simplu si transparent</h2>
+    <div class="pricing-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <div class="pricing-card">
+        <div class="price-plan">FREE</div>
+        <div class="price-amount">0€<sub>/prima luna</sub></div>
+        <div class="price-desc" data-i18n="price1Desc">Prima luna gratuit, apoi platit</div>
+        <ul class="price-feats">
+          <li data-i18n="pf1a">5 listari in prima luna</li>
+          <li data-i18n="pf1b">Toate cele 11 sectiuni</li>
+          <li data-i18n="pf1c">Traduceri incluse</li>
+          <li data-i18n="pf1d">Salvare listing</li>
+          <li data-i18n="pf1e">Fara card necesar</li>
+        </ul>
+        <button class="price-btn" data-i18n="priceBtn1" onclick="openModal('register')">Incepe Gratuit</button>
+      </div>
+      <div class="pricing-card">
+        <div class="price-plan">STARTER</div>
+        <div class="price-amount">9€<sub>/luna</sub></div>
+        <div class="price-desc" data-i18n="price2Desc">Pentru vanzatori individuali</div>
+        <ul class="price-feats">
+          <li data-i18n="pf2a">15 listari pe luna</li>
+          <li data-i18n="pf2b">Toate cele 11 sectiuni</li>
+          <li data-i18n="pf2c">Toate limbile</li>
+          <li data-i18n="pf2d">Istoric complet</li>
+          <li data-i18n="pf2e">Suport email</li>
+        </ul>
+        <button class="price-btn" data-i18n="priceBtn2" onclick="openModal('register')">Alege Starter</button>
+      </div>
+      <div class="pricing-card hot">
+        <div class="pricing-badge-hot">POPULAR</div>
+        <div class="price-plan">PRO</div>
+        <div class="price-amount">19€<sub>/luna</sub></div>
+        <div class="price-desc" data-i18n="price3Desc">Pentru vanzatori activi</div>
+        <ul class="price-feats">
+          <li data-i18n="pf3a">50 listari pe luna</li>
+          <li data-i18n="pf3b">Modul Poze Premium</li>
+          <li data-i18n="pf3c">Toate limbile</li>
+          <li data-i18n="pf3d">Istoric nelimitat</li>
+          <li data-i18n="pf3e">Export ZIP</li>
+          <li data-i18n="pf3f">Suport prioritar</li>
+        </ul>
+        <button class="price-btn" data-i18n="priceBtn3" onclick="openModal('register')">Alege Pro</button>
+      </div>
+      <div class="pricing-card">
+        <div class="price-plan">AGENCY</div>
+        <div class="price-amount">49€<sub>/luna</sub></div>
+        <div class="price-desc" data-i18n="price4Desc">Pentru agentii si reselleri</div>
+        <ul class="price-feats">
+          <li data-i18n="pf4a">Listari nelimitate</li>
+          <li data-i18n="pf4b">Multi-brand / client</li>
+          <li data-i18n="pf4c">API Access</li>
+          <li data-i18n="pf4d">White-label optional</li>
+          <li data-i18n="pf4e">Suport dedicat</li>
+        </ul>
+        <button class="price-btn" data-i18n="priceBtn4" onclick="openModal('register')">Alege Agency</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="landing-footer">
+    © 2025 NovaCraft · Toate drepturile rezervate
+  </div>
+</div>
+
+<!-- ===== APP (logged in) ===== -->
+<div class="view" id="vApp">
+  <div class="app-wrap">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section" data-i18n="sidebarMenu">MENIU</div>
+      <div class="s-item active" id="sn-dash" onclick="goPage('dash')"><span class="s-icon">📊</span><span data-i18n="sidebarDash">Dashboard</span></div>
+      <div class="s-item" id="sn-gen" onclick="goPage('gen')"><span class="s-icon">⚡</span><span data-i18n="sidebarGen">Generator</span></div>
+      <div class="s-item" id="sn-hist" onclick="goPage('hist')"><span class="s-icon">📋</span><span data-i18n="sidebarHist">Istoric</span></div>
+      <div class="sidebar-section" style="margin-top:12px" data-i18n="sidebarCont">CONT</div>
+      <div class="s-item" id="sn-sett" onclick="goPage('sett')"><span class="s-icon">⚙️</span><span data-i18n="sidebarSett">Setari</span></div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="p-dash">
+        <div class="dash-top">
+          <div>
+            <div class="greeting">Buna, <em id="greetName">utilizator</em>!</div>
+            <div style="color:var(--muted);font-size:13px;margin-top:4px">Ce listing generam azi?</div>
+          </div>
+          <button class="btn-xl accent" style="font-size:13px;padding:10px 24px" onclick="goPage('gen')">+ Listing Nou</button>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-lbl">// TOTAL LISTARI</div>
+            <div class="stat-val" id="stTotal">0</div>
+            <div class="stat-hint">in contul tau</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-lbl">// LUNA ACEASTA</div>
+            <div class="stat-val" id="stMonth">0</div>
+            <div class="stat-hint" id="stMonthHint">din 3 disponibile</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-lbl">// PLAN ACTIV</div>
+            <div class="stat-val" style="font-size:20px;margin-top:6px" id="stPlan">FREE</div>
+            <div class="stat-hint" id="stPlanHint">3 listari/luna</div>
+          </div>
+        </div>
+        <div class="blk-header">
+          <div class="blk-title">Listari Recente</div>
+          <button class="link-btn" onclick="goPage('hist')">Vezi toate →</button>
+        </div>
+        <div id="dashRecent"></div>
+      </div>
+
+      <!-- GENERATOR -->
+      <div class="page" id="p-gen">
+        <div class="page-title">Generator Listing Premium</div>
+        <div class="page-sub">Completeaza informatiile produsului — listing-ul complet se genereaza automat</div>
+
+        <div class="limit-warn" id="limitWarn">
+          Ai atins limita planului FREE (3 listari/luna). <a onclick="goPage('sett')">Upgrade la Pro →</a>
+        </div>
+
+        <div class="form-grid">
+          <div class="f-field f-full">
+            <label>Platforma</label>
+            <div class="plat-row">
+              <button class="plat-btn active" onclick="setPlat('emag',this)">eMAG</button>
+              <button class="plat-btn" onclick="setPlat('amazon',this)">Amazon</button>
+              <button class="plat-btn" onclick="setPlat('ebay',this)">eBay</button>
+              <button class="plat-btn" onclick="setPlat('site',this)">Site propriu</button>
+              <button class="plat-btn" onclick="setPlat('universal',this)">Universal</button>
+            </div>
+          </div>
+          <div class="f-field f-full">
+            <label>Limba generare <span style="color:var(--accent)">*</span></label>
+            <select id="gLang">
+              <option value="romana">Romana</option>
+              <option value="engleza">Engleza</option>
+              <option value="bulgara">Bulgara</option>
+              <option value="maghiara">Maghiara</option>
+              <option value="germana">Germana</option>
+              <option value="franceza">Franceza</option>
+              <option value="spaniola">Spaniola</option>
+              <option value="italiana">Italiana</option>
+              <option value="poloneza">Poloneza</option>
+              <option value="ceha">Ceha</option>
+              <option value="slovaca">Slovaca</option>
+              <option value="croata">Croata</option>
+              <option value="rusa">Rusa</option>
+              <option value="turca">Turca</option>
+            </select>
+          </div>
+          <div class="f-field f-full">
+            <label>Nume produs <span style="color:var(--accent)">*</span></label>
+            <input type="text" id="gName" placeholder="ex: Mini Camera 4K Sport Action + Telecomanda + Kit Accesorii">
+          </div>
+          <div class="f-field f-full">
+            <label>Specificatii / Informatii produs <span style="color:var(--accent)">*</span></label>
+            <textarea id="gSpecs" placeholder="Lipeste orice ai gasit: specs Amazon, descriere 1688/Alibaba, bullet points, fisa tehnica...&#10;&#10;ex: 4K 60fps, stabilizare EIS, waterproof 30m, Wi-Fi app, ecran touch 2inch, baterie 1500mAh, unghi 170 grade..."></textarea>
+          </div>
+          <div class="f-field f-full">
+            <label>Keywords <span style="color:var(--muted)">— optional, din Cerebro CSV sau manual</span></label>
+            <textarea id="gKeywords" style="min-height:72px" placeholder="camera sport 4k, camera actiune, camera waterproof, camera motocicleta..."></textarea>
+            <div class="f-hint">// Poti lipi direct export CSV din Helium 10 Cerebro</div>
+          </div>
+          <div class="f-field">
+            <label>Categorie produs</label>
+            <input type="text" id="gCategory" placeholder="ex: Camere sport, Accesorii PS5...">
+          </div>
+          <div class="f-field">
+            <label>Pret (moneda locala)</label>
+            <input type="text" id="gPrice" placeholder="ex: 199 RON, 39 EUR...">
+          </div>
+          <div class="f-field f-full">
+            <label>Continut pachet</label>
+            <input type="text" id="gPackage" placeholder="ex: 1x camera, 2x baterie, 1x telecomanda, kit accesorii montare...">
+          </div>
+        </div>
+
+        <button class="gen-btn" id="genMainBtn" onclick="runGenerate()">
+          ⚡ GENEREAZA LISTING COMPLET
+        </button>
+        <div class="gen-err" id="genErr"></div>
+
+        <div id="genOutput" style="display:none" class="output-wrap">
+          <div class="out-header">
+            <div class="out-title">Listing Generat — <em id="outPlatLabel"></em></div>
+            <div class="out-actions">
+              <button class="out-btn save-btn" id="saveBtn" onclick="saveListing()">💾 SALVEAZA</button>
+              <button class="out-btn" onclick="copyAll()">COPIAZA TOT</button>
+            </div>
+          </div>
+          <div id="sectionsWrap"></div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="p-hist">
+        <div class="page-title">Istoricul Listingurilor</div>
+        <div class="page-sub">Toate listingurile generate si salvate in contul tau</div>
+        <div id="histWrap"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="p-sett">
+        <div class="page-title">Setari Cont</div>
+        <div class="page-sub">Informatii despre contul si planul tau</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="s-row-label">EMAIL</div>
+            <div class="s-row-val" id="settEmail">—</div>
+          </div>
+          <div class="settings-row">
+            <div class="s-row-label">PLAN ACTIV</div>
+            <div class="s-row-val" style="font-family:var(--display);font-size:20px;font-weight:800;color:var(--accent)" id="settPlan">FREE</div>
+          </div>
+          <div class="settings-row">
+            <div class="s-row-label">LIMBA INTERFATA</div>
+            <div class="s-row-val">
+              <select class="lang-select" style="margin-top:4px" onchange="setUILang(this.value)" id="settLang">
+                <option value="ro">🇷🇴 Romana</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="hu">🇭🇺 Magyar</option>
+                <option value="bg">🇧🇬 Bulgarski</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="fr">🇫🇷 Francais</option>
+                <option value="es">🇪🇸 Espanol</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="upgrade-box" style="max-width:500px;margin-top:20px">
+          <h4>Upgrade la Pro — 49 RON/luna</h4>
+          <p>30 listari/luna, modul poze premium, toate limbile, istoric nelimitat, export ZIP.</p>
+          <button class="btn-xl accent" style="font-size:13px;padding:10px 24px;opacity:.6;cursor:not-allowed">Upgrade (in curand)</button>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-wrap -->
+</div><!-- /vApp -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ CONFIG ============
+const SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
+const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
+const AI_KEY = ''; // cheia e stocata securizat pe server
+
+const { createClient } = window.supabase;
+const db = createClient(SB_URL, SB_KEY);
+
+// ============ STATE ============
+let user = null, profile = null;
+let platform = 'emag';
+let sections = [];
+let listingName = '';
+
+// ============ I18N ============
+const LANGS={ro:{flag:'https://flagcdn.com/24x18/ro.png',code:'RO'},en:{flag:'https://flagcdn.com/24x18/gb.png',code:'EN'},hu:{flag:'https://flagcdn.com/24x18/hu.png',code:'HU'},bg:{flag:'https://flagcdn.com/24x18/bg.png',code:'BG'},de:{flag:'https://flagcdn.com/24x18/de.png',code:'DE'},fr:{flag:'https://flagcdn.com/24x18/fr.png',code:'FR'},es:{flag:'https://flagcdn.com/24x18/es.png',code:'ES'}};
+const TR={
+ro:{navLogin:'Login',navRegister:'Incepe Gratuit',navLogout:'Logout',heroEyebrow:'// GENERATOR PREMIUM DE LISTARI',heroH1:'Listari care <em>vand</em>,<br><span>generate in secunde</span>',heroSub:'Primul tool din Romania pentru listari premium pe orice marketplace. Text profesional + Poze + Traduceri automate.',heroCta1:'Incepe Gratuit',heroCta2:'Am deja cont',heroFunctOn:'FUNCTIONEAZA PE',featEyebrow:'// DE CE NOVACRAFT',featTitle:'Tot ce ai nevoie pentru un listing perfect',feat1Title:'11 Sectiuni Premium',feat1Desc:'Template complet: titlu SEO, beneficii, features, FAQ, garantie, CTA. Generat in 30 secunde, gata de upload.',feat2Title:'Orice Limba',feat2Desc:'Genereaza in romana, traduce instant in engleza, bulgara, maghiara, germana sau orice alta limba din lume.',feat3Title:'Poze Profesionale',feat3Desc:'Eliminare fundal, infografice cu specificatii, pachet complet imagini gata de upload. (in curand)',feat4Title:'Orice Marketplace',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Standardul premium care functioneaza oriunde vinzi.',feat5Title:'Keywords Cerebro',feat5Desc:'Importa direct CSV din Helium 10 Cerebro. Keywordurile se integreaza automat si natural in listing.',feat6Title:'Istoric Complet',feat6Desc:'Toate listingurile salvate in contul tau. Acces oricand, editare, export, refolosire pentru clienti noi.',priceEyebrow:'// PLANURI',priceTitle:'Simplu si transparent',price1Desc:'Prima luna gratuit, apoi platit',price2Desc:'Pentru vanzatori individuali',price3Desc:'Pentru vanzatori activi',price4Desc:'Pentru agentii si reselleri',priceBtn1:'Incepe Gratuit',priceBtn2:'Alege Starter',priceBtn3:'Alege Pro',priceBtn4:'Alege Agency',pf1a:'5 listari in prima luna',pf1b:'Toate cele 11 sectiuni',pf1c:'Traduceri incluse',pf1d:'Salvare listing',pf1e:'Fara card necesar',pf2a:'15 listari pe luna',pf2b:'Toate cele 11 sectiuni',pf2c:'Toate limbile',pf2d:'Istoric complet',pf2e:'Suport email',pf3a:'50 listari pe luna',pf3b:'Modul Poze Premium',pf3c:'Toate limbile',pf3d:'Istoric nelimitat',pf3e:'Export ZIP',pf3f:'Suport prioritar',pf4a:'Listari nelimitate',pf4b:'Multi-brand / client',pf4c:'API Access',pf4d:'White-label optional',pf4e:'Suport dedicat',footerText:'© 2025 NovaCraft · Toate drepturile rezervate',modalTabLogin:'Login',modalTabReg:'Cont Nou',labelEmail:'EMAIL',labelPass:'PAROLA',labelName:'NUME COMPLET',btnLogin:'Intra in cont',btnRegister:'Creeaza cont gratuit',sidebarMenu:'MENIU',sidebarCont:'CONT',sidebarDash:'Dashboard',sidebarGen:'Generator',sidebarHist:'Istoric',sidebarSett:'Setari',dashSub:'Ce listing generam azi?',dashNewBtn:'+ Listing Nou',statLbl1:'// TOTAL LISTARI',statHint1:'in contul tau',statLbl2:'// LUNA ACEASTA',statLbl3:'// PLAN ACTIV',recentTitle:'Listari Recente',recentLinkBtn:'Vezi toate →',genTitle:'Generator Listing Premium',genSub:'Completeaza informatiile produsului — listing-ul complet se genereaza automat',genPlatLbl:'Platforma',genLangLbl:'Limba generare',genNameLbl:'Nume produs',genSpecsLbl:'Specificatii / Informatii produs',genKwLbl:'Keywords',genCatLbl:'Categorie produs',genPriceLbl:'Pret (moneda locala)',genPkgLbl:'Continut pachet',genBtnText:'⚡ GENEREAZA LISTING COMPLET',generating:'Se genereaza...',outSaveBtn:'💾 SALVEAZA',outCopyBtn:'COPIAZA TOT',saved:'✓ SALVAT',histTitle:'Istoricul Listingurilor',histSub:'Toate listingurile generate si salvate in contul tau',settTitle:'Setari Cont',settSub:'Informatii despre contul si planul tau',settEmailLbl:'EMAIL',settPlanLbl:'PLAN ACTIV',settLangLbl:'LIMBA INTERFATA',upgradeTitle:'Upgrade la Pro — 49 RON/luna',upgradeDesc:'30 listari/luna, modul poze premium, toate limbile, istoric nelimitat, export ZIP.',upgradeBtn:'Upgrade (in curand)',welcome:'Bine ai revenit!',loggedOut:'Te-ai deconectat.',listingSaved:'Listing salvat!',listingDeleted:'Listing sters.',listingCopied:'Listing copiat complet!',openBtn:'DESCHIDE',deleteBtn:'STERGE',copyBtn:'COPIAZA',copiedBtn:'✓ COPIAT',emptyDash:'Nu ai generat inca nicio listare.',emptyHist:'Nu ai listari salvate inca.',newListingBtn:'Genereaza primul listing',confirmDelete:'Stergi acest listing?',fillRequired:'Completeaza minim numele produsului si specificatiile.',limitReached:'Ai atins limita planului FREE (3 listari/luna).',upgradeLink:'Upgrade la Pro →',listariPeL:'listari/luna',din:'din',dinDisp:'disponibile'},
+en:{navLogin:'Login',navRegister:'Start Free',navLogout:'Logout',heroEyebrow:'// PREMIUM LISTING GENERATOR',heroH1:'Listings that <em>sell</em>,<br><span>generated in seconds</span>',heroSub:'The first tool for premium listings on any marketplace. Professional text + Photos + Automatic translations.',heroCta1:'Start Free',heroCta2:'I have an account',heroFunctOn:'WORKS ON',featEyebrow:'// WHY NOVACRAFT',featTitle:'Everything you need for a perfect listing',feat1Title:'11 Premium Sections',feat1Desc:'Complete template: SEO title, benefits, features, FAQ, warranty, CTA. Generated in 30 seconds, ready to upload.',feat2Title:'Any Language',feat2Desc:'Generate in Romanian, translate instantly to English, Bulgarian, Hungarian, German or any language.',feat3Title:'Professional Photos',feat3Desc:'Background removal, infographics with specs, complete image pack ready to upload. (coming soon)',feat4Title:'Any Marketplace',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. The premium standard that works anywhere you sell.',feat5Title:'Cerebro Keywords',feat5Desc:'Import CSV directly from Helium 10 Cerebro. Keywords integrate automatically and naturally.',feat6Title:'Complete History',feat6Desc:'All listings saved in your account. Access anytime, edit, export, reuse for new clients.',priceEyebrow:'// PLANS',priceTitle:'Simple and transparent',price1Desc:'First month free, then paid',price2Desc:'For individual sellers',price3Desc:'For active sellers',price4Desc:'For agencies and resellers',priceBtn1:'Start Free',priceBtn2:'Choose Starter',priceBtn3:'Choose Pro',priceBtn4:'Choose Agency',pf1a:'5 listings in first month',pf1b:'All 11 sections',pf1c:'Translations included',pf1d:'Listing save',pf1e:'No card required',pf2a:'15 listings per month',pf2b:'All 11 sections',pf2c:'All languages',pf2d:'Full history',pf2e:'Email support',pf3a:'50 listings per month',pf3b:'Premium Photo Module',pf3c:'All languages',pf3d:'Unlimited history',pf3e:'ZIP Export',pf3f:'Priority support',pf4a:'Unlimited listings',pf4b:'Multi-brand / client',pf4c:'API Access',pf4d:'White-label optional',pf4e:'Dedicated support',footerText:'© 2025 NovaCraft · All rights reserved',modalTabLogin:'Login',modalTabReg:'New Account',labelEmail:'EMAIL',labelPass:'PASSWORD',labelName:'FULL NAME',btnLogin:'Sign in',btnRegister:'Create free account',sidebarMenu:'MENU',sidebarCont:'ACCOUNT',sidebarDash:'Dashboard',sidebarGen:'Generator',sidebarHist:'History',sidebarSett:'Settings',dashSub:'What listing are we generating today?',dashNewBtn:'+ New Listing',statLbl1:'// TOTAL LISTINGS',statHint1:'in your account',statLbl2:'// THIS MONTH',statLbl3:'// ACTIVE PLAN',recentTitle:'Recent Listings',recentLinkBtn:'View all →',genTitle:'Premium Listing Generator',genSub:'Fill in the product info — the complete listing is auto-generated',genPlatLbl:'Platform',genLangLbl:'Generation language',genNameLbl:'Product name',genSpecsLbl:'Specifications / Product info',genKwLbl:'Keywords',genCatLbl:'Product category',genPriceLbl:'Price (local currency)',genPkgLbl:'Package contents',genBtnText:'⚡ GENERATE COMPLETE LISTING',generating:'Generating...',outSaveBtn:'💾 SAVE',outCopyBtn:'COPY ALL',saved:'✓ SAVED',histTitle:'Listing History',histSub:'All listings generated and saved in your account',settTitle:'Account Settings',settSub:'Information about your account and plan',settEmailLbl:'EMAIL',settPlanLbl:'ACTIVE PLAN',settLangLbl:'INTERFACE LANGUAGE',upgradeTitle:'Upgrade to Pro — 49 RON/month',upgradeDesc:'30 listings/month, premium photo module, all languages, unlimited history, ZIP export.',upgradeBtn:'Upgrade (coming soon)',welcome:'Welcome back!',loggedOut:'You have been logged out.',listingSaved:'Listing saved!',listingDeleted:'Listing deleted.',listingCopied:'Listing copied!',openBtn:'OPEN',deleteBtn:'DELETE',copyBtn:'COPY',copiedBtn:'✓ COPIED',emptyDash:"You haven't generated any listings yet.",emptyHist:'No saved listings yet.',newListingBtn:'Generate first listing',confirmDelete:'Delete this listing?',fillRequired:'Please fill in product name and specifications.',limitReached:'You have reached the FREE plan limit (3 listings/month).',upgradeLink:'Upgrade to Pro →',listariPeL:'listings/month',din:'of',dinDisp:'available'},
+hu:{navLogin:'Bejelentkezés',navRegister:'Kezdj ingyen',navLogout:'Kijelentkezés',heroEyebrow:'// PRÉMIUM LISTA GENERÁTOR',heroH1:'Listák, amelyek <em>eladnak</em>,<br><span>másodpercek alatt</span>',heroSub:'Az első eszköz prémium terméklistákhoz bármely piactéren.',heroCta1:'Kezdj ingyen',heroCta2:'Van már fiókom',heroFunctOn:'MŰKÖDIK EZEKEN',featEyebrow:'// MIÉRT NOVACRAFT',featTitle:'Minden, amire szükséged van egy tökéletes listához',feat1Title:'11 Prémium Szekció',feat1Desc:'Teljes sablon: SEO cím, előnyök, jellemzők, GYIK, garancia, CTA. 30 másodperc alatt generálva.',feat2Title:'Bármely Nyelv',feat2Desc:'Generálj románul, fordíts azonnal angolra, bolgárra, magyarra, németre vagy bármely más nyelvre.',feat3Title:'Professzionális Fotók',feat3Desc:'Háttér eltávolítása, infografikák specifikációkkal, teljes képcsomag feltöltésre kész. (hamarosan)',feat4Title:'Bármely Piactér',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Prémium szabvány, amely mindenhol működik.',feat5Title:'Cerebro Kulcsszavak',feat5Desc:'Importálj CSV-t közvetlenül a Helium 10 Cerebro-ból. A kulcsszavak automatikusan integrálódnak.',feat6Title:'Teljes Előzmény',feat6Desc:'Minden lista mentve a fiókodban. Hozzáférés bármikor, szerkesztés, exportálás.',priceEyebrow:'// CSOMAGOK',priceTitle:'Egyszerű és átlátható',price1Desc:'Tökéletes a teszteléshez',price2Desc:'Aktív eladóknak',price3Desc:'Ügynökségeknek',priceBtn1:'Kezdj ingyen',priceBtn2:'Pro választása',priceBtn3:'Agency választása',pf1a:'3 lista havonta',pf1b:'Mind a 11 szekció',pf1c:'Fordítások belefoglalva',pf1d:'Lista mentés',pf1e:'30 napos előzmény',pf2a:'30 lista havonta',pf2b:'Prémium Fotó Modul',pf2c:'Minden nyelv',pf2d:'Korlátlan előzmény',pf2e:'ZIP Export',pf2f:'Prioritásos támogatás',pf3a:'Korlátlan listák',pf3b:'Multi-brand / ügyfél',pf3c:'API Hozzáférés',pf3d:'White-label opció',pf3e:'Dedikált támogatás',footerText:'© 2025 NovaCraft · Minden jog fenntartva',modalTabLogin:'Bejelentkezés',modalTabReg:'Új fiók',labelEmail:'EMAIL',labelPass:'JELSZÓ',labelName:'TELJES NÉV',btnLogin:'Bejelentkezés',btnRegister:'Ingyenes fiók létrehozása',sidebarMenu:'MENÜ',sidebarCont:'FIÓK',sidebarDash:'Vezérlőpult',sidebarGen:'Generátor',sidebarHist:'Előzmények',sidebarSett:'Beállítások',dashSub:'Milyen listát generálunk ma?',dashNewBtn:'+ Új Lista',statLbl1:'// ÖSSZES LISTA',statHint1:'a fiókodban',statLbl2:'// EBBEN A HÓNAPBAN',statLbl3:'// AKTÍV CSOMAG',recentTitle:'Legutóbbi Listák',recentLinkBtn:'Összes megtekintése →',genTitle:'Prémium Lista Generátor',genSub:'Töltsd ki a termékinformációkat — a teljes lista automatikusan generálódik',genPlatLbl:'Platform',genLangLbl:'Generálás nyelve',genNameLbl:'Terméknév',genSpecsLbl:'Specifikációk',genKwLbl:'Kulcsszavak',genCatLbl:'Kategória',genPriceLbl:'Ár',genPkgLbl:'Csomagtartalom',genBtnText:'⚡ TELJES LISTA GENERÁLÁSA',generating:'Generálás...',outSaveBtn:'💾 MENTÉS',outCopyBtn:'ÖSSZES MÁSOLÁSA',saved:'✓ MENTVE',histTitle:'Lista Előzmények',histSub:'Összes generált és mentett lista',settTitle:'Fiók Beállítások',settSub:'Fiók és csomag információk',settEmailLbl:'EMAIL',settPlanLbl:'AKTÍV CSOMAG',settLangLbl:'FELÜLETI NYELV',upgradeTitle:'Upgrade Pro-ra',upgradeDesc:'30 lista/hó, prémium fotó modul, minden nyelv.',upgradeBtn:'Upgrade (hamarosan)',welcome:'Üdvözöljük vissza!',loggedOut:'Kijelentkezett.',listingSaved:'Lista mentve!',listingDeleted:'Lista törölve.',listingCopied:'Lista másolva!',openBtn:'MEGNYITÁS',deleteBtn:'TÖRLÉS',copyBtn:'MÁSOLÁS',copiedBtn:'✓ MÁSOLVA',emptyDash:'Még nem generáltál listát.',emptyHist:'Még nincsenek mentett listák.',newListingBtn:'Első lista generálása',confirmDelete:'Törli?',fillRequired:'Töltsd ki a terméknevet és specifikációkat.',limitReached:'Elérted az ingyenes korlátot.',upgradeLink:'Upgrade →',listariPeL:'lista/hó',din:'ebből',dinDisp:'elérhető'},
+bg:{navLogin:'Вход',navRegister:'Започни безплатно',navLogout:'Изход',heroEyebrow:'// ПРЕМИУМ ГЕНЕРАТОР',heroH1:'Листинги, които <em>продават</em>,<br><span>генерирани за секунди</span>',heroSub:'Първият инструмент за премиум листинги на всеки пазар.',heroCta1:'Започни безплатно',heroCta2:'Имам акаунт',heroFunctOn:'РАБОТИ В',featEyebrow:'// ЗАЩО NOVACRAFT',featTitle:'Всичко необходимо за перфектен листинг',feat1Title:'11 Премиум Секции',feat1Desc:'Пълен шаблон: SEO заглавие, ползи, функции, ЧЗВ, гаранция, CTA. Генериран за 30 секунди.',feat2Title:'Всеки Език',feat2Desc:'Генерирай на румънски, преведи на английски, български, унгарски, немски или друг език.',feat3Title:'Професионални Снимки',feat3Desc:'Премахване на фон, инфографики, пълен пакет изображения. (скоро)',feat4Title:'Всеки Пазар',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Работи навсякъде.',feat5Title:'Ключови думи Cerebro',feat5Desc:'Импортирай CSV директно от Helium 10. Ключовите думи се интегрират автоматично.',feat6Title:'Пълна История',feat6Desc:'Всички листинги запазени в акаунта ти.',priceEyebrow:'// ПЛАНОВЕ',priceTitle:'Просто и прозрачно',price1Desc:'Перфектно за тестване',price2Desc:'За активни продавачи',price3Desc:'За агенции',priceBtn1:'Започни безплатно',priceBtn2:'Избери Pro',priceBtn3:'Избери Agency',pf1a:'3 листинга на месец',pf1b:'Всички 11 секции',pf1c:'Преводи включени',pf1d:'Запазване',pf1e:'История 30 дни',pf2a:'30 листинга на месец',pf2b:'Премиум Фото Модул',pf2c:'Всички езици',pf2d:'Неограничена история',pf2e:'ZIP Експорт',pf2f:'Приоритетна поддръжка',pf3a:'Неограничени листинги',pf3b:'Мулти-бранд',pf3c:'API Достъп',pf3d:'White-label',pf3e:'Специална поддръжка',footerText:'© 2025 NovaCraft · Всички права запазени',modalTabLogin:'Вход',modalTabReg:'Нов акаунт',labelEmail:'ИМЕЙЛ',labelPass:'ПАРОЛА',labelName:'ПЪЛНО ИМЕ',btnLogin:'Влезте',btnRegister:'Създайте безплатен акаунт',sidebarMenu:'МЕНЮ',sidebarCont:'АКАУНТ',sidebarDash:'Табло',sidebarGen:'Генератор',sidebarHist:'История',sidebarSett:'Настройки',dashSub:'Какъв листинг генерираме днес?',dashNewBtn:'+ Нов Листинг',statLbl1:'// ОБЩО',statHint1:'в акаунта',statLbl2:'// ТОЗИ МЕСЕЦ',statLbl3:'// АКТИВЕН ПЛАН',recentTitle:'Последни Листинги',recentLinkBtn:'Виж всички →',genTitle:'Генератор на Листинги',genSub:'Попълни информацията — листингът се генерира автоматично',genPlatLbl:'Платформа',genLangLbl:'Език',genNameLbl:'Продукт',genSpecsLbl:'Спецификации',genKwLbl:'Ключови думи',genCatLbl:'Категория',genPriceLbl:'Цена',genPkgLbl:'Съдържание',genBtnText:'⚡ ГЕНЕРИРАЙ ЛИСТИНГ',generating:'Генериране...',outSaveBtn:'💾 ЗАПАЗИ',outCopyBtn:'КОПИРАЙ',saved:'✓ ЗАПАЗЕНО',histTitle:'История',histSub:'Всички листинги в акаунта ти',settTitle:'Настройки',settSub:'Акаунт и план',settEmailLbl:'ИМЕЙЛ',settPlanLbl:'ПЛАН',settLangLbl:'ЕЗИК',upgradeTitle:'Upgrade към Pro',upgradeDesc:'30 листинга/месец, фото модул, всички езици.',upgradeBtn:'Upgrade (скоро)',welcome:'Добре дошли!',loggedOut:'Излязохте.',listingSaved:'Запазено!',listingDeleted:'Изтрито.',listingCopied:'Копирано!',openBtn:'ОТВОРИ',deleteBtn:'ИЗТРИЙ',copyBtn:'КОПИРАЙ',copiedBtn:'✓ КОПИРАНО',emptyDash:'Все още нняма листинги.',emptyHist:'Няма запазени листинги.',newListingBtn:'Генерирай първия',confirmDelete:'Изтриване?',fillRequired:'Попълни продукта и спецификациите.',limitReached:'Достигнат лимит.',upgradeLink:'Upgrade →',listariPeL:'листинга/месец',din:'от',dinDisp:'налични'},
+de:{navLogin:'Anmelden',navRegister:'Kostenlos starten',navLogout:'Abmelden',heroEyebrow:'// PREMIUM LISTING GENERATOR',heroH1:'Listings, die <em>verkaufen</em>,<br><span>in Sekunden generiert</span>',heroSub:'Das erste Tool für Premium-Listings auf jedem Marktplatz. Professioneller Text + Fotos + Automatische Übersetzungen.',heroCta1:'Kostenlos starten',heroCta2:'Ich habe ein Konto',heroFunctOn:'FUNKTIONIERT AUF',featEyebrow:'// WARUM NOVACRAFT',featTitle:'Alles für ein perfektes Listing',feat1Title:'11 Premium-Sektionen',feat1Desc:'Vollständige Vorlage: SEO-Titel, Vorteile, Features, FAQ, Garantie, CTA. In 30 Sekunden generiert.',feat2Title:'Jede Sprache',feat2Desc:'Auf Rumänisch generieren, sofort übersetzen: Englisch, Bulgarisch, Ungarisch, Deutsch oder jede Sprache.',feat3Title:'Professionelle Fotos',feat3Desc:'Hintergrundentfernung, Infografiken, komplettes Bildpaket hochladebereit. (demnächst)',feat4Title:'Jeder Marktplatz',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Premium-Standard der überall funktioniert.',feat5Title:'Cerebro Keywords',feat5Desc:'CSV direkt aus Helium 10 importieren. Keywords werden automatisch integriert.',feat6Title:'Vollständige Historie',feat6Desc:'Alle Listings gespeichert. Jederzeit Zugriff.',priceEyebrow:'// PAKETE',priceTitle:'Einfach und transparent',price1Desc:'Perfekt zum Testen',price2Desc:'Für aktive Verkäufer',price3Desc:'Für Agenturen',priceBtn1:'Kostenlos starten',priceBtn2:'Pro wählen',priceBtn3:'Agency wählen',pf1a:'3 Listings pro Monat',pf1b:'Alle 11 Sektionen',pf1c:'Übersetzungen inklusive',pf1d:'Listing speichern',pf1e:'30 Tage Verlauf',pf2a:'30 Listings pro Monat',pf2b:'Premium Foto-Modul',pf2c:'Alle Sprachen',pf2d:'Unbegrenzte Historie',pf2e:'ZIP-Export',pf2f:'Prioritätssupport',pf3a:'Unbegrenzte Listings',pf3b:'Multi-Brand',pf3c:'API-Zugang',pf3d:'White-label',pf3e:'Dedizierter Support',footerText:'© 2025 NovaCraft · Alle Rechte vorbehalten',modalTabLogin:'Anmelden',modalTabReg:'Neues Konto',labelEmail:'E-MAIL',labelPass:'PASSWORT',labelName:'VOLLSTÄNDIGER NAME',btnLogin:'Einloggen',btnRegister:'Kostenloses Konto erstellen',sidebarMenu:'MENÜ',sidebarCont:'KONTO',sidebarDash:'Dashboard',sidebarGen:'Generator',sidebarHist:'Verlauf',sidebarSett:'Einstellungen',dashSub:'Welches Listing generieren wir heute?',dashNewBtn:'+ Neues Listing',statLbl1:'// LISTINGS GESAMT',statHint1:'in Ihrem Konto',statLbl2:'// DIESEN MONAT',statLbl3:'// AKTIVES PAKET',recentTitle:'Neueste Listings',recentLinkBtn:'Alle anzeigen →',genTitle:'Premium Listing Generator',genSub:'Produktinformationen ausfüllen — vollständiges Listing wird automatisch generiert',genPlatLbl:'Plattform',genLangLbl:'Sprache',genNameLbl:'Produktname',genSpecsLbl:'Spezifikationen',genKwLbl:'Keywords',genCatLbl:'Kategorie',genPriceLbl:'Preis',genPkgLbl:'Packungsinhalt',genBtnText:'⚡ VOLLSTÄNDIGES LISTING GENERIEREN',generating:'Generiere...',outSaveBtn:'💾 SPEICHERN',outCopyBtn:'ALLES KOPIEREN',saved:'✓ GESPEICHERT',histTitle:'Listing-Verlauf',histSub:'Alle gespeicherten Listings',settTitle:'Kontoeinstellungen',settSub:'Konto und Paket',settEmailLbl:'E-MAIL',settPlanLbl:'AKTIVES PAKET',settLangLbl:'SPRACHE',upgradeTitle:'Upgrade auf Pro — 49 RON/Monat',upgradeDesc:'30 Listings/Monat, Foto-Modul, alle Sprachen.',upgradeBtn:'Upgrade (demnächst)',welcome:'Willkommen zurück!',loggedOut:'Abgemeldet.',listingSaved:'Listing gespeichert!',listingDeleted:'Listing gelöscht.',listingCopied:'Listing kopiert!',openBtn:'ÖFFNEN',deleteBtn:'LÖSCHEN',copyBtn:'KOPIEREN',copiedBtn:'✓ KOPIERT',emptyDash:'Noch keine Listings generiert.',emptyHist:'Keine gespeicherten Listings.',newListingBtn:'Erstes Listing generieren',confirmDelete:'Dieses Listing löschen?',fillRequired:'Bitte Produktname und Spezifikationen ausfüllen.',limitReached:'FREE-Limit erreicht.',upgradeLink:'Upgrade auf Pro →',listariPeL:'Listings/Monat',din:'von',dinDisp:'verfügbar'},
+fr:{navLogin:'Connexion',navRegister:'Commencer gratuitement',navLogout:'Déconnexion',heroEyebrow:'// GÉNÉRATEUR DE LISTINGS PREMIUM',heroH1:'Des listings qui <em>vendent</em>,<br><span>générés en secondes</span>',heroSub:'Le premier outil pour des listings premium sur n\'importe quelle marketplace.',heroCta1:'Commencer gratuitement',heroCta2:"J'ai déjà un compte",heroFunctOn:'FONCTIONNE SUR',featEyebrow:'// POURQUOI NOVACRAFT',featTitle:'Tout ce dont vous avez besoin pour un listing parfait',feat1Title:'11 Sections Premium',feat1Desc:'Modèle complet: titre SEO, avantages, fonctionnalités, FAQ, garantie, CTA. Généré en 30 secondes.',feat2Title:"N'importe quelle langue",feat2Desc:"Générez en roumain, traduisez en anglais, bulgare, hongrois, allemand ou n'importe quelle langue.",feat3Title:'Photos professionnelles',feat3Desc:'Suppression arrière-plan, infographies, pack complet prêt à télécharger. (bientôt)',feat4Title:"N'importe quelle marketplace",feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. Norme premium partout.',feat5Title:'Mots-clés Cerebro',feat5Desc:'Importez CSV depuis Helium 10. Les mots-clés s\'intègrent automatiquement.',feat6Title:'Historique complet',feat6Desc:'Tous les listings sauvegardés. Accès à tout moment.',priceEyebrow:'// FORFAITS',priceTitle:'Simple et transparent',price1Desc:'Parfait pour tester',price2Desc:'Pour les vendeurs actifs',price3Desc:'Pour les agences',priceBtn1:'Commencer gratuitement',priceBtn2:'Choisir Pro',priceBtn3:'Choisir Agency',pf1a:'3 listings par mois',pf1b:'Les 11 sections',pf1c:'Traductions incluses',pf1d:'Sauvegarde listing',pf1e:'Historique 30 jours',pf2a:'30 listings par mois',pf2b:'Module Photo Premium',pf2c:'Toutes les langues',pf2d:'Historique illimité',pf2e:'Export ZIP',pf2f:'Support prioritaire',pf3a:'Listings illimités',pf3b:'Multi-marque',pf3c:'Accès API',pf3d:'White-label',pf3e:'Support dédié',footerText:'© 2025 NovaCraft · Tous droits réservés',modalTabLogin:'Connexion',modalTabReg:'Nouveau compte',labelEmail:'E-MAIL',labelPass:'MOT DE PASSE',labelName:'NOM COMPLET',btnLogin:'Se connecter',btnRegister:'Créer un compte gratuit',sidebarMenu:'MENU',sidebarCont:'COMPTE',sidebarDash:'Tableau de bord',sidebarGen:'Générateur',sidebarHist:'Historique',sidebarSett:'Paramètres',dashSub:"Quel listing générons-nous aujourd'hui?",dashNewBtn:'+ Nouveau Listing',statLbl1:'// TOTAL LISTINGS',statHint1:'dans votre compte',statLbl2:'// CE MOIS',statLbl3:'// FORFAIT ACTIF',recentTitle:'Listings Récents',recentLinkBtn:'Voir tout →',genTitle:'Générateur de Listings Premium',genSub:'Remplissez les informations produit — le listing complet est généré automatiquement',genPlatLbl:'Plateforme',genLangLbl:'Langue',genNameLbl:'Nom du produit',genSpecsLbl:'Spécifications',genKwLbl:'Mots-clés',genCatLbl:'Catégorie',genPriceLbl:'Prix',genPkgLbl:'Contenu du colis',genBtnText:'⚡ GÉNÉRER LE LISTING',generating:'Génération...',outSaveBtn:'💾 SAUVEGARDER',outCopyBtn:'TOUT COPIER',saved:'✓ SAUVEGARDÉ',histTitle:'Historique des Listings',histSub:'Tous les listings sauvegardés',settTitle:'Paramètres du compte',settSub:'Compte et forfait',settEmailLbl:'E-MAIL',settPlanLbl:'FORFAIT ACTIF',settLangLbl:'LANGUE',upgradeTitle:'Passer à Pro',upgradeDesc:'30 listings/mois, module photo, toutes les langues.',upgradeBtn:'Upgrade (bientôt)',welcome:'Bienvenue!',loggedOut:'Déconnecté.',listingSaved:'Listing sauvegardé!',listingDeleted:'Listing supprimé.',listingCopied:'Listing copié!',openBtn:'OUVRIR',deleteBtn:'SUPPRIMER',copyBtn:'COPIER',copiedBtn:'✓ COPIÉ',emptyDash:"Vous n'avez pas encore de listing.",emptyHist:'Aucun listing sauvegardé.',newListingBtn:'Générer le premier listing',confirmDelete:'Supprimer ce listing?',fillRequired:'Remplissez le nom et les spécifications.',limitReached:'Limite GRATUIT atteinte.',upgradeLink:'Passer à Pro →',listariPeL:'listings/mois',din:'sur',dinDisp:'disponibles'},
+es:{navLogin:'Iniciar sesión',navRegister:'Empezar gratis',navLogout:'Cerrar sesión',heroEyebrow:'// GENERADOR DE LISTINGS PREMIUM',heroH1:'Listings que <em>venden</em>,<br><span>generados en segundos</span>',heroSub:'La primera herramienta para listings premium en cualquier marketplace.',heroCta1:'Empezar gratis',heroCta2:'Ya tengo cuenta',heroFunctOn:'FUNCIONA EN',featEyebrow:'// POR QUÉ NOVACRAFT',featTitle:'Todo lo que necesitas para un listing perfecto',feat1Title:'11 Secciones Premium',feat1Desc:'Plantilla completa: título SEO, beneficios, características, FAQ, garantía, CTA. Generado en 30 segundos.',feat2Title:'Cualquier Idioma',feat2Desc:'Genera en rumano, traduce al inglés, búlgaro, húngaro, alemán o cualquier idioma.',feat3Title:'Fotos Profesionales',feat3Desc:'Eliminación de fondo, infografías, paquete completo listo para subir. (próximamente)',feat4Title:'Cualquier Marketplace',feat4Desc:'eMAG, Amazon, eBay, Allegro, Wildberries, Shopify. El estándar premium que funciona en cualquier lugar.',feat5Title:'Keywords Cerebro',feat5Desc:'Importa CSV desde Helium 10. Las keywords se integran automáticamente.',feat6Title:'Historial Completo',feat6Desc:'Todos los listings guardados. Acceso en cualquier momento.',priceEyebrow:'// PLANES',priceTitle:'Simple y transparente',price1Desc:'Perfecto para probar',price2Desc:'Para vendedores activos',price3Desc:'Para agencias',priceBtn1:'Empezar gratis',priceBtn2:'Elegir Pro',priceBtn3:'Elegir Agency',pf1a:'3 listings por mes',pf1b:'Las 11 secciones',pf1c:'Traducciones incluidas',pf1d:'Guardar listing',pf1e:'Historial 30 días',pf2a:'30 listings por mes',pf2b:'Módulo Fotos Premium',pf2c:'Todos los idiomas',pf2d:'Historial ilimitado',pf2e:'Exportar ZIP',pf2f:'Soporte prioritario',pf3a:'Listings ilimitados',pf3b:'Multi-marca',pf3c:'Acceso API',pf3d:'White-label',pf3e:'Soporte dedicado',footerText:'© 2025 NovaCraft · Todos los derechos reservados',modalTabLogin:'Iniciar sesión',modalTabReg:'Nueva cuenta',labelEmail:'CORREO',labelPass:'CONTRASEÑA',labelName:'NOMBRE COMPLETO',btnLogin:'Entrar',btnRegister:'Crear cuenta gratis',sidebarMenu:'MENÚ',sidebarCont:'CUENTA',sidebarDash:'Panel',sidebarGen:'Generador',sidebarHist:'Historial',sidebarSett:'Configuración',dashSub:'¿Qué listing generamos hoy?',dashNewBtn:'+ Nuevo Listing',statLbl1:'// TOTAL LISTINGS',statHint1:'en tu cuenta',statLbl2:'// ESTE MES',statLbl3:'// PLAN ACTIVO',recentTitle:'Listings Recientes',recentLinkBtn:'Ver todos →',genTitle:'Generador de Listings Premium',genSub:'Completa la información del producto — el listing se genera automáticamente',genPlatLbl:'Plataforma',genLangLbl:'Idioma',genNameLbl:'Nombre del producto',genSpecsLbl:'Especificaciones',genKwLbl:'Palabras clave',genCatLbl:'Categoría',genPriceLbl:'Precio',genPkgLbl:'Contenido del paquete',genBtnText:'⚡ GENERAR LISTING COMPLETO',generating:'Generando...',outSaveBtn:'💾 GUARDAR',outCopyBtn:'COPIAR TODO',saved:'✓ GUARDADO',histTitle:'Historial de Listings',histSub:'Todos los listings guardados',settTitle:'Configuración de Cuenta',settSub:'Cuenta y plan',settEmailLbl:'CORREO',settPlanLbl:'PLAN ACTIVO',settLangLbl:'IDIOMA',upgradeTitle:'Upgrade a Pro',upgradeDesc:'30 listings/mes, módulo foto, todos los idiomas.',upgradeBtn:'Upgrade (próximamente)',welcome:'¡Bienvenido!',loggedOut:'Sesión cerrada.',listingSaved:'¡Listing guardado!',listingDeleted:'Listing eliminado.',listingCopied:'¡Listing copiado!',openBtn:'ABRIR',deleteBtn:'ELIMINAR',copyBtn:'COPIAR',copiedBtn:'✓ COPIADO',emptyDash:'Aún no has generado ningún listing.',emptyHist:'No hay listings guardados.',newListingBtn:'Generar el primer listing',confirmDelete:'¿Eliminar este listing?',fillRequired:'Completa el nombre y las especificaciones.',limitReached:'Límite del plan GRATIS alcanzado.',upgradeLink:'Upgrade a Pro →',listariPeL:'listings/mes',din:'de',dinDisp:'disponibles'}
+};
+let uiLang = localStorage.getItem('uiLang') || 'ro';
+function t(k){ const d=TR[uiLang]||TR.ro; return d[k]!==undefined?d[k]:(TR.ro[k]||k); }
+
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v=t(el.getAttribute('data-i18n')); if(v) el.textContent=v;
+  });
+  const h1=document.getElementById('heroH1'); if(h1) h1.innerHTML=t('heroH1');
+  const nb=document.getElementById('navLoginBtn'); if(nb) nb.textContent=t('navLogin');
+  const nr=document.getElementById('navRegBtn'); if(nr) nr.textContent=t('navRegister');
+  const nl=document.getElementById('navLogoutBtn'); if(nl) nl.textContent=t('navLogout');
+  const ft=document.querySelector('.landing-footer'); if(ft) ft.textContent=t('footerText');
+  const li=LANGS[uiLang]; if(!li) return;
+  const fl=document.getElementById('activeLangFlag'); if(fl){ fl.src=li.flag; fl.alt=li.code; }
+  const lc=document.getElementById('activeLangCode'); if(lc) lc.textContent=li.code;
+  document.querySelectorAll('.lang-opt').forEach(o=>o.classList.toggle('cur',o.getAttribute('data-lang')===uiLang));
+  document.getElementById('uiLangSel').value=uiLang;
+  const sl=document.getElementById('settLang'); if(sl) sl.value=uiLang;
+}
+
+function toggleLangDrop(e){
+  e.stopPropagation();
+  document.getElementById('langDrop').classList.toggle('open');
+  document.getElementById('langTrigger').classList.toggle('open');
+}
+document.addEventListener('click',()=>{
+  document.getElementById('langDrop')?.classList.remove('open');
+  document.getElementById('langTrigger')?.classList.remove('open');
+});
+
+function setUILang(l){
+  uiLang=l;
+  localStorage.setItem('uiLang',l);
+  applyTranslations();
+  document.getElementById('langDrop')?.classList.remove('open');
+  document.getElementById('langTrigger')?.classList.remove('open');
+}
+
+// ============ NAVIGATION ============
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome(){
+  user ? showView('vApp') : showView('vLanding');
+}
+
+function goPage(p){
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.s-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  document.getElementById('sn-'+p).classList.add('active');
+  if(p==='dash') loadDash();
+  if(p==='hist') loadHist();
+  if(p==='sett') loadSett();
+}
+
+// ============ MODAL ============
+function openModal(tab){
+  document.getElementById('authModal').classList.add('active');
+  switchTab(tab);
+}
+function closeModal(){ document.getElementById('authModal').classList.remove('active'); }
+function switchTab(tab){
+  document.getElementById('formLogin').style.display = tab==='login'?'block':'none';
+  document.getElementById('formRegister').style.display = tab==='register'?'block':'none';
+  document.getElementById('tabA').classList.toggle('active', tab==='login');
+  document.getElementById('tabB').classList.toggle('active', tab==='register');
+}
+
+// ============ AUTH ============
+async function doLogin(){
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  const err = document.getElementById('errLogin');
+  if(!email||!pass){ err.style.display='block'; err.textContent='Completeaza email si parola.'; return; }
+  const btn = document.getElementById('btnLogin');
+  btn.disabled=true; btn.textContent='Se conecteaza...';
+  const {data,error} = await db.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false; btn.textContent='Intra in cont';
+  if(error){ err.style.display='block'; err.textContent=error.message; return; }
+  closeModal();
+  await onLogin(data.user);
+}
+
+async function doRegister(){
+  const name = document.getElementById('rName').value.trim();
+  const email = document.getElementById('rEmail').value.trim();
+  const pass = document.getElementById('rPass').value;
+  const err = document.getElementById('errReg');
+  const ok = document.getElementById('okReg');
+  if(!name||!email||!pass){ err.style.display='block'; err.textContent='Completeaza toate campurile.'; return; }
+  if(pass.length<6){ err.style.display='block'; err.textContent='Parola minim 6 caractere.'; return; }
+  const btn = document.getElementById('btnReg');
+  btn.disabled=true; btn.textContent='Se creeaza contul...';
+  const {error} = await db.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  btn.disabled=false; btn.textContent='Creeaza cont gratuit';
+  if(error){ err.style.display='block'; err.textContent=error.message; return; }
+  err.style.display='none';
+  ok.style.display='block';
+  ok.textContent='Cont creat! Verifica emailul pentru confirmare, apoi logheaza-te.';
+}
+
+async function doLogout(){
+  await db.auth.signOut();
+  user=null; profile=null;
+  document.getElementById('navGuest').style.display='flex';
+  document.getElementById('navMember').style.display='none';
+  showView('vLanding');
+  toast('Te-ai deconectat.','ok');
+}
+
+async function onLogin(u){
+  user = u;
+  document.getElementById('navGuest').style.display='none';
+  document.getElementById('navMember').style.display='flex';
+  document.getElementById('navEmail').textContent = u.email;
+  const {data:p} = await db.from('profiles').select('*').eq('id',u.id).single();
+  profile = p;
+  showView('vApp');
+  goPage('dash');
+  toast(t('welcome'),'ok');
+  applyTranslations();
+}
+
+// ============ DASHBOARD ============
+async function loadDash(){
+  if(!user) return;
+  const name = profile?.full_name || user.email.split('@')[0];
+  document.getElementById('greetName').textContent = name;
+  const {data:all, count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false});
+  document.getElementById('stTotal').textContent = count||0;
+  const plan = profile?.plan||'free';
+  document.getElementById('stPlan').textContent = plan.toUpperCase();
+  const lim = plan==='agency'?'∞':plan==='pro'?50:plan==='starter'?15:5;
+  document.getElementById('stPlanHint').textContent = lim+' listari/luna';
+  const som = new Date(); som.setDate(1); som.setHours(0,0,0,0);
+  const mth = (all||[]).filter(l=>new Date(l.created_at)>=som).length;
+  document.getElementById('stMonth').textContent = mth;
+  document.getElementById('stMonthHint').textContent = 'din '+lim+' disponibile';
+  const recent = (all||[]).slice(0,5);
+  document.getElementById('dashRecent').innerHTML = recent.length
+    ? recent.map(l=>listingRow(l,false)).join('')
+    : `<div class="empty-box"><div class="empty-icon">📄</div><p>Nu ai generat inca nicio listare.</p><button class="btn-xl accent" style="font-size:13px;padding:10px 24px" onclick="goPage('gen')">Genereaza primul listing</button></div>`;
+}
+
+// ============ HISTORY ============
+async function loadHist(){
+  if(!user) return;
+  const {data:all} = await db.from('listings').select('*').eq('user_id',user.id).order('created_at',{ascending:false});
+  document.getElementById('histWrap').innerHTML = (all&&all.length)
+    ? all.map(l=>listingRow(l,true)).join('')
+    : `<div class="empty-box"><div class="empty-icon">📋</div><p>Nu ai listari salvate inca.</p><button class="btn-xl accent" style="font-size:13px;padding:10px 24px" onclick="goPage('gen')">Genereaza primul listing</button></div>`;
+}
+
+function listingRow(l, showDel){
+  const date = new Date(l.created_at).toLocaleDateString('ro-RO');
+  const n = l.sections ? Object.keys(l.sections).length : 0;
+  return `<div class="listing-row">
+    <div>
+      <div class="lr-name">${esc(l.product_name)}</div>
+      <div class="lr-meta">${(l.platform||'').toUpperCase()} · ${l.language} · ${n} sectiuni · ${date}</div>
+    </div>
+    <div class="lr-actions">
+      <button class="ic-btn" onclick="openListing('${l.id}')">DESCHIDE</button>
+      ${showDel?`<button class="ic-btn red" onclick="delListing('${l.id}')">STERGE</button>`:''}
+    </div>
+  </div>`;
+}
+
+async function delListing(id){
+  if(!confirm('Stergi acest listing?')) return;
+  await db.from('listings').delete().eq('id',id);
+  loadHist(); toast('Listing sters.','ok');
+}
+
+async function openListing(id){
+  const {data:l} = await db.from('listings').select('*').eq('id',id).single();
+  if(!l) return;
+  goPage('gen');
+  document.getElementById('gName').value = l.product_name;
+  document.getElementById('gLang').value = l.language||'romana';
+  if(l.sections){
+    sections = Object.values(l.sections);
+    listingName = l.product_name;
+    renderSections(sections, l.platform||'emag');
+    document.getElementById('genOutput').style.display='block';
+  }
+}
+
+// ============ SETTINGS ============
+function loadSett(){
+  if(!user) return;
+  document.getElementById('settEmail').textContent = user.email;
+  document.getElementById('settPlan').textContent = (profile?.plan||'FREE').toUpperCase();
+  document.getElementById('settLang').value = uiLang;
+}
+
+// ============ GENERATOR ============
+function setPlat(p, btn){
+  platform = p;
+  document.querySelectorAll('.plat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+const SEC_NAMES = [
+  'Titlu SEO Optimizat','Subtitlu / Tagline','Paragraf Introductiv',
+  'Beneficii Cheie (Bullets)','Sectiune Feature 1','Sectiune Feature 2',
+  'Sectiune Feature 3','Intrebari Frecvente (FAQ)','Garantie & Incredere',
+  'Continut Pachet & Specificatii','Call to Action'
+];
+
+async function runGenerate(){
+  const name = document.getElementById('gName').value.trim();
+  const specs = document.getElementById('gSpecs').value.trim();
+  if(!name||!specs){
+    showGenErr('Completeaza minim numele produsului si specificatiile.');
+    return;
+  }
+  // Check monthly limit
+  if(profile?.plan==='free'||!profile?.plan){
+    const som = new Date(); som.setDate(1); som.setHours(0,0,0,0);
+    const {count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).gte('created_at',som.toISOString());
+    if(count>=5){ document.getElementById('limitWarn').style.display='block'; return; }
+  }
+  const lang = document.getElementById('gLang').value;
+  const kw = document.getElementById('gKeywords').value.trim();
+  const cat = document.getElementById('gCategory').value.trim();
+  const price = document.getElementById('gPrice').value.trim();
+  const pkg = document.getElementById('gPackage').value.trim();
+  listingName = name;
+  const platMap={emag:'eMAG Marketplace (Romania)',amazon:'Amazon',ebay:'eBay',site:'site propriu',universal:'marketplace universal'};
+  const btn = document.getElementById('genMainBtn');
+  btn.disabled=true; btn.innerHTML=`<div class="load-bar"></div>${t('generating')}`;
+  document.getElementById('genErr').style.display='none';
+  document.getElementById('genOutput').style.display='none';
+  document.getElementById('saveBtn').textContent='💾 SALVEAZA';
+  document.getElementById('saveBtn').disabled=false;
+  const prompt=`Esti un specialist senior in copywriting pentru e-commerce. Genereaza un listing premium complet.
+
+PRODUS: ${name}
+PLATFORMA: ${platMap[platform]||platform}
+LIMBA OUTPUT: ${lang}
+${cat?`CATEGORIE: ${cat}`:''}
+${price?`PRET: ${price}`:''}
+
+SPECIFICATII:
+${specs}
+${kw?`\nKEYWORDS:\n${kw}`:''}
+${pkg?`\nCONTINUT PACHET: ${pkg}`:''}
+
+REGULI CRITICE:
+- ZERO diacritice in text (a,i,s,t,a fara semne)
+- Ton: profesional, convingator, beneficii clare
+- Integreaza natural keywordurile
+- Limba output OBLIGATORIE: ${lang}
+
+Genereaza 11 sectiuni. Separa cu ===SECTIUNE_N=== (N de la 1 la 11).
+
+===SECTIUNE_1=== TITLU SEO OPTIMIZAT (max 200 caractere)
+===SECTIUNE_2=== SUBTITLU / TAGLINE (1-2 randuri)
+===SECTIUNE_3=== PARAGRAF INTRODUCTIV (2-3 paragrafe)
+===SECTIUNE_4=== BENEFICII CHEIE (6-8 bullets: checkmark Beneficiu — explicatie)
+===SECTIUNE_5=== FEATURE 1 (titlu + 3-4 randuri)
+===SECTIUNE_6=== FEATURE 2 (titlu + 3-4 randuri)
+===SECTIUNE_7=== FEATURE 3 (titlu + 3-4 randuri)
+===SECTIUNE_8=== FAQ (5 intrebari + raspunsuri)
+===SECTIUNE_9=== GARANTIE & INCREDERE
+===SECTIUNE_10=== CONTINUT PACHET & SPECIFICATII TEHNICE
+===SECTIUNE_11=== CALL TO ACTION (2-3 randuri puternice)`;
+
+  try{
+    const res = await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'API error');
+    const text = data.text;
+    const parts = text.split(/===SECTIUNE_\d+===/);
+    sections = parts.slice(1).map(s=>s.replace(/^[^\n]*\n/,'').trim());
+    renderSections(sections, platform);
+    document.getElementById('genOutput').style.display='block';
+    document.getElementById('genOutput').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    showGenErr('Eroare: '+e.message);
+  }finally{
+    btn.disabled=false; btn.innerHTML='⚡ GENEREAZA LISTING COMPLET';
+  }
+}
+
+function renderSections(secs, plat){
+  const platLabel={emag:'eMAG',amazon:'Amazon',ebay:'eBay',site:'Site Propriu',universal:'Universal'}[plat]||plat;
+  document.getElementById('outPlatLabel').textContent=platLabel;
+  const wrap = document.getElementById('sectionsWrap');
+  wrap.innerHTML='';
+  secs.forEach((content,i)=>{
+    if(!content) return;
+    const card = document.createElement('div');
+    card.className='sec-card';
+    card.style.animationDelay=(i*.04)+'s';
+    card.innerHTML=`
+      <div class="sec-head" onclick="toggleSec(this)">
+        <div class="sec-meta">
+          <span class="sec-n">${String(i+1).padStart(2,'0')}</span>
+          <span class="sec-title">${SEC_NAMES[i]||'Sectiune'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="sec-copy" onclick="copySec(event,${i})">COPIAZA</button>
+          <span class="chevron open">▼</span>
+        </div>
+      </div>
+      <div class="sec-body">${esc(content)}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+function toggleSec(h){
+  h.nextElementSibling.classList.toggle('hidden');
+  h.querySelector('.chevron').classList.toggle('open');
+}
+
+function copySec(e,i){
+  e.stopPropagation();
+  navigator.clipboard.writeText(sections[i]).then(()=>{
+    e.target.textContent='✓ COPIAT'; e.target.classList.add('ok');
+    setTimeout(()=>{ e.target.textContent='COPIAZA'; e.target.classList.remove('ok'); },2000);
+  });
+}
+
+function copyAll(){
+  const full = sections.map((s,i)=>`--- ${SEC_NAMES[i]} ---\n${s}`).join('\n\n');
+  navigator.clipboard.writeText(full).then(()=>toast('Listing copiat complet!','ok'));
+}
+
+async function saveListing(){
+  if(!user){ openModal('login'); return; }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled=true; btn.textContent='Se salveaza...';
+  const obj={}; sections.forEach((s,i)=>obj[i]=s);
+  const {error} = await db.from('listings').insert({
+    user_id:user.id, product_name:listingName, platform:platform,
+    language:document.getElementById('gLang').value,
+    sections:obj, keywords:document.getElementById('gKeywords').value.trim()
+  });
+  if(error){ btn.disabled=false; btn.textContent='💾 SALVEAZA'; toast('Eroare: '+error.message,'err'); }
+  else{ btn.textContent=t('saved'); toast('Listing salvat!','ok'); }
+}
+
+function showGenErr(msg){
+  const el = document.getElementById('genErr');
+  el.style.display='block'; el.textContent=msg;
+}
+
+// ============ UTILS ============
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ============ INIT ============
+(async()=>{
+  applyTranslations();
+  const {data:{session}} = await db.auth.getSession();
+  if(session?.user) await onLogin(session.user);
+  db.auth.onAuthStateChange(async(ev,sess)=>{
+    if(ev==='SIGNED_IN'&&sess?.user) await onLogin(sess.user);
+    else if(ev==='SIGNED_OUT'){ user=null; showView('vLanding'); }
+  });
+})();
+</script>
+</body>
+</html>
