@@ -1056,7 +1056,7 @@ Specificatii: format Caracteristica: Valoare pe randuri separate, FARA tabele)
     if(!res.ok) throw new Error(data.error||'API error');
     const text = data.text;
     const parts = text.split(/===SECTIUNE_\d+===/);
-    sections = parts.slice(1).map(s=>s.replace(/^[^\n]*\n/,'').trim());
+    sections = parts.slice(1).map(s=>cleanText(s.replace(/^[^\n]*\n/,'').trim()));
     renderSections(sections, platform);
     document.getElementById('genOutput').style.display='block';
     document.getElementById('genOutput').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1065,6 +1065,32 @@ Specificatii: format Caracteristica: Valoare pe randuri separate, FARA tabele)
   }finally{
     btn.disabled=false; btn.innerHTML='⚡ GENEREAZA LISTING COMPLET';
   }
+}
+
+function cleanText(text){
+  return text
+    // Sterge emoji-uri si simboluri Unicode speciale
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{2600}-\u{27FF}]/gu, '')
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+    .replace(/[\u2700-\u27BF]/g, '')
+    .replace(/[\uFE00-\uFE0F]/g, '')
+    // Sterge ### titluri markdown
+    .replace(/^#{1,6}\s+/gm, '')
+    // Sterge **bold** si __bold__
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    // Sterge *italic* si _italic_
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    // Sterge linii de tip --- sau === sau *** (separatori markdown)
+    .replace(/^[-*_]{3,}\s*$/gm, '')
+    // Sterge tabele markdown cu bare |
+    .replace(/^\|.*\|$/gm, '')
+    .replace(/^\|[-|: ]+\|$/gm, '')
+    // Curata spatii si randuri goale multiple
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function renderSections(secs, plat){
@@ -1150,7 +1176,7 @@ ${fullListing}`;
     if(!res.ok) throw new Error(data.error||'Eroare traducere');
     const text = data.text;
     const parts = text.split(/===SECTIUNE_\d+===/);
-    const translated = parts.slice(1).map(s=>s.replace(/^[^\n]*\n/,'').trim()).filter(s=>s);
+    const translated = parts.slice(1).map(s=>cleanText(s.replace(/^[^\n]*\n/,'').trim())).filter(s=>s);
     if(!translated.length) throw new Error('Traducerea nu a returnat sectiuni valide.');
     sections = translated;
     renderSections(sections, platform);
