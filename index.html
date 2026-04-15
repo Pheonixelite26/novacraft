@@ -611,22 +611,39 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
         </div>
         <div class="stats-row">
           <div class="stat-box">
-            <div class="stat-lbl">// TOTAL LISTARI</div>
+            <div class="stat-lbl" style="display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e7aa51" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+      TOTAL LISTARI
+    </div>
             <div class="stat-val" id="stTotal">0</div>
             <div class="stat-hint">in contul tau</div>
           </div>
           <div class="stat-box">
-            <div class="stat-lbl">// LUNA ACEASTA</div>
+            <div class="stat-lbl" style="display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e7aa51" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      LUNA ACEASTA
+    </div>
             <div class="stat-val" id="stMonth">0</div>
             <div class="stat-hint" id="stMonthHint">din 5 disponibile</div>
           </div>
           <div class="stat-box">
-            <div class="stat-lbl">// PLAN ACTIV</div>
+            <div class="stat-lbl" id="planLbl" style="display:flex;align-items:center;gap:6px"><span id="planCrown" style="font-size:13px">👑</span> PLAN ACTIV</div>
             <div class="stat-val" style="font-size:20px;margin-top:6px" id="stPlan">FREE</div>
             <div class="stat-hint" id="stPlanHint">5 listari/luna</div>
           </div>
           <div class="stat-box">
-            <div class="stat-lbl">// CREDITE TRADUCERI</div>
+            <div class="stat-lbl" style="display:flex;align-items:center;gap:6px">
+      <svg width="11" height="13" viewBox="0 0 24 24" fill="#e7aa51" stroke="#e7aa51" stroke-width="1">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      CREDITE TRADUCERI
+    </div>
             <div class="stat-val" id="stCredits">0</div>
             <div class="stat-hint">credite extra disponibile</div>
           </div>
@@ -1002,6 +1019,16 @@ async function loadDash(){
     document.getElementById('greetName').innerHTML = name + ' <span style="font-size:11px;background:linear-gradient(135deg,#e7aa51,#ffe499);color:#000;padding:2px 8px;font-family:var(--mono);font-weight:700;vertical-align:middle">ADMIN</span>';
   }
   document.getElementById('stPlan').textContent = plan.toUpperCase();
+  // Set crown per plan
+  const crowns = {
+    'free': '🥉',
+    'starter': '🥈',
+    'pro': '🏆',
+    'agency': '👑',
+    'admin': '💎'
+  };
+  const crownEl = document.getElementById('planCrown');
+  if(crownEl) crownEl.textContent = crowns[plan] || '🥉';
   const lim = plan==='admin'?'∞':plan==='agency'?'∞':plan==='pro'?50:plan==='starter'?15:5;
   document.getElementById('stPlanHint').textContent = lim+' listari/luna';
   const som = new Date(); som.setDate(1); som.setHours(0,0,0,0);
