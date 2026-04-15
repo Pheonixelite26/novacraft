@@ -1127,10 +1127,17 @@ function setPlat(p, btn){
 }
 
 const SEC_NAMES = [
-  'Titlu SEO Optimizat','Subtitlu / Tagline','Paragraf Introductiv',
-  'Beneficii Cheie (Bullets)','Sectiune Feature 1','Sectiune Feature 2',
-  'Sectiune Feature 3','Intrebari Frecvente (FAQ)','Garantie & Incredere',
-  'Continut Pachet & Specificatii','Call to Action'
+  'Titlu Optimizat Premium',
+  'Titlu de Deschidere Comercial',
+  'Paragraf Introductiv',
+  'Beneficii Principale',
+  'Blocuri Extinse de Beneficii',
+  'De ce sa alegi acest produs',
+  'Specificatii Esentiale',
+  'Compatibilitate si Scenarii',
+  'Intrebari Frecvente (FAQ)',
+  'Continut Pachet',
+  'Garantie si Inchidere Premium'
 ];
 
 async function runGenerate(){
@@ -1167,49 +1174,109 @@ async function runGenerate(){
   document.getElementById('freeTransLeft').textContent='3';
   document.getElementById('creditsLeft').textContent=profile?.credits||0;
   startTimer('genElapsed','genTimeEstimate');
-  const prompt=`Esti un specialist senior in copywriting pentru e-commerce. Genereaza un listing premium complet.
+  const platformInstructiuni = platform === 'site' ? 
+    'Site propriu (extinde partea emotionala si de branding, blocuri de beneficii mai dezvoltate, mai multa persuasiune si storytelling)' :
+    platform === 'emag' ? 
+    'eMAG Marketplace (mai compact, mai direct, accent pe titlu, beneficii, specificatii, continut pachet, FAQ mai scurt)' :
+    platMap[platform]||platform;
+
+  const prompt=`Esti un specialist senior in copywriting pentru e-commerce din Romania. Genereaza un listing PREMIUM COMPLET folosind structura exacta de mai jos.
 
 PRODUS: ${name}
-PLATFORMA: ${platMap[platform]||platform}
+PLATFORMA: ${platformInstructiuni}
 LIMBA OUTPUT: ${lang}
 ${cat?`CATEGORIE: ${cat}`:''}
 ${price?`PRET: ${price}`:''}
 
-SPECIFICATII:
+SPECIFICATII PRODUS:
 ${specs}
-${kw?`\nKEYWORDS:\n${kw}`:''}
+${kw?`\nKEYWORDS DE INTEGRAT NATURAL:\n${kw}`:''}
 ${pkg?`\nCONTINUT PACHET: ${pkg}`:''}
 
 REGULI CRITICE DE FORMAT — RESPECTA TOATE FARA EXCEPTIE:
-- ZERO diacritice in text (a,i,s,t,a fara semne diacritice)
-- ZERO emoji sau simboluri speciale de orice fel (NU folosi: ✓ ✅ ⚡ 🔥 ★ • sau orice alt simbol Unicode special)
-- ZERO asteriscuri pentru bold sau italic (NU scrie **text** sau *text* — scrie text normal)
-- ZERO bare verticale pentru tabele (NU folosi format |col1|col2| sau |---|---|)
-- Pentru bullets/puncte cheie foloseste doar liniuta simpla: - Beneficiu — explicatie
-- Pentru specificatii tehnice foloseste format simplu pe randuri separate:
-  Caracteristica: Valoare
-  Caracteristica: Valoare
-  (NU tabele, NU bare, NU markdown)
-- Titlurile sectiunilor se scriu simplu, cu majuscule, fara formatare speciala
-- Ton: profesional, convingator, beneficii clare
-- Integreaza natural keywordurile
+- ZERO diacritice (a,i,s,t,a fara semne)
+- ZERO emoji sau simboluri speciale (NU: ✓ ✅ ⚡ ★ • sau orice Unicode special)
+- ZERO asteriscuri pentru bold (NU scrie **text** sau *text*)
+- ZERO bare verticale pentru tabele (NU |col1|col2|)
+- Bullets: doar liniuta simpla: - Punct cheie
+- Specificatii: format Caracteristica: Valoare pe randuri separate
+- Titluri sectiuni: scrise simplu cu MAJUSCULE, fara formatare
+- Ton: profesional, convingator, cald, orientat pe beneficii reale
+- Integreaza keywordurile NATURAL, fara keyword stuffing
 - Limba output OBLIGATORIE: ${lang}
 
-Genereaza 11 sectiuni. Separa cu ===SECTIUNE_N=== (N de la 1 la 11).
+Genereaza exact 11 sectiuni in ordinea de mai jos. Separa fiecare cu ===SECTIUNE_N=== (N de la 1 la 11).
 
-===SECTIUNE_1=== TITLU SEO OPTIMIZAT (max 200 caractere, fara emoji, fara simboluri)
-===SECTIUNE_2=== SUBTITLU / TAGLINE (1-2 randuri, text simplu)
-===SECTIUNE_3=== PARAGRAF INTRODUCTIV (2-3 paragrafe, text curat fara formatare)
-===SECTIUNE_4=== BENEFICII CHEIE (6-8 puncte cu liniuta simpla: - Beneficiu — explicatie)
-===SECTIUNE_5=== FEATURE 1 (titlu simplu cu majuscule + 3-4 randuri text)
-===SECTIUNE_6=== FEATURE 2 (titlu simplu cu majuscule + 3-4 randuri text)
-===SECTIUNE_7=== FEATURE 3 (titlu simplu cu majuscule + 3-4 randuri text)
-===SECTIUNE_8=== FAQ (5 intrebari si raspunsuri, format: Intrebare? / Raspuns.)
-===SECTIUNE_9=== GARANTIE SI INCREDERE (text simplu, fara simboluri)
-===SECTIUNE_10=== CONTINUT PACHET SI SPECIFICATII TEHNICE
-(Continut pachet: lista cu liniute simple
-Specificatii: format Caracteristica: Valoare pe randuri separate, FARA tabele)
-===SECTIUNE_11=== CALL TO ACTION (2-3 randuri puternice, text simplu)`;
+===SECTIUNE_1=== TITLU OPTIMIZAT PREMIUM
+Formula: [Tip produs] [Brand daca exista], [compatibilitate daca exista], [functie principala], [caracteristica 1], [caracteristica 2], [caracteristica 3], [scenariu utilizare], [beneficiu final]
+Max 200 caractere. Fara emoji. Fara simboluri. Include principalele keywords.
+
+===SECTIUNE_2=== TITLU DE DESCHIDERE COMERCIAL
+O fraza scurta, puternica, premium, care transmite imediat beneficiul principal.
+1-2 randuri. Elegant si direct. Nu repeta titlul SEO.
+
+===SECTIUNE_3=== PARAGRAF INTRODUCTIV
+2-4 randuri care prezinta produsul elegant, clar, fara tehnicisme excesive.
+Raspunde rapid la: ce este si de ce merita?
+Formula: [Produsul] este alegerea ideala pentru cei care isi doresc [beneficiu principal], [beneficiu secundar] si o experienta usoara de utilizare. Conceput pentru confort, eficienta si utilizare intuitiva.
+
+===SECTIUNE_4=== BENEFICII PRINCIPALE
+4-6 beneficii concrete, usor de scanat. NU functii, ci REZULTATE pentru client.
+Format:
+- Ajuta la...
+- Ofera...
+- Permite...
+- Reduce...
+- Este usor de...
+- Potrivit pentru...
+
+===SECTIUNE_5=== BLOCURI EXTINSE DE BENEFICII
+4-5 subsectiuni, fiecare cu TITLU + 2-4 randuri explicative.
+Structura recomandata:
+PERFORMANTA CARE SE SIMTE
+[2-4 randuri]
+CONFORT IN UTILIZARE
+[2-4 randuri]
+DESIGN MODERN SI PRACTIC
+[2-4 randuri]
+USOR DE FOLOSIT ZI DE ZI
+[2-4 randuri]
+IDEAL PENTRU ACASA, BIROU SAU DEPLASARI
+[2-4 randuri]
+
+===SECTIUNE_6=== DE CE SA ALEGI ACEST PRODUS
+Sectiune de diferentiere. Raspunde la: de ce sa il aleaga pe acesta, ce il face mai bun, ce obiectie principala poate avea clientul.
+3-5 randuri persuasive, calde, fara clisee.
+
+===SECTIUNE_7=== SPECIFICATII ESENTIALE
+Format clar: Caracteristica: Valoare
+Include: Tip produs, Brand, Material, Culoare, Dimensiuni, Greutate, Alimentare, Putere, Functii, Numar moduri, Autonomie, Certificari.
+FARA tabele cu bare. FARA markdown.
+
+===SECTIUNE_8=== COMPATIBILITATE SI SCENARII DE UTILIZARE
+Cu ce este compatibil, pentru cine este potrivit, unde se poate folosi, in ce situatii este util.
+2-4 randuri clare si concrete.
+
+===SECTIUNE_9=== INTREBARI FRECVENTE
+4-6 intrebari scurte relevante cu raspunsuri clare.
+Format:
+Cum se foloseste?
+[Raspuns concis]
+Este potrivit pentru uz zilnic?
+[Raspuns concis]
+(si asa mai departe)
+
+===SECTIUNE_10=== CONTINUT PACHET
+Sectiune separata si clara. Lista exacta cu ce primeste clientul.
+Format:
+- 1 x [produs principal]
+- 1 x [accesoriu]
+(etc.)
+Important: nu lasa clientul sa presupuna ce primeste.
+
+===SECTIUNE_11=== GARANTIE SI INCHIDERE PREMIUM
+Inchide elegant si inspira siguranta. 3-5 randuri care combina garantia, increderea si un mesaj final persuasiv.
+Mentioneaza: garantie legala, suport, politica retur, de ce e o alegere inspirata.`;
 
   try{
     const res = await fetch('/api/generate',{
