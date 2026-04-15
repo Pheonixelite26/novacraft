@@ -732,6 +732,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
             <div class="f-hint">// Poti lipi direct export CSV din Helium 10 Cerebro</div>
           </div>
           <div class="f-field">
+            <label>Brand <span style="color:var(--muted);font-weight:400;text-transform:none;font-size:10px">— optional</span></label>
+            <input type="text" id="gBrand" placeholder="ex: ANDCRIS, OnXSmart, Samsung... (lasa gol daca nu ai brand)">
+          </div>
+          <div class="f-field">
             <label>Categorie produs</label>
             <input type="text" id="gCategory" placeholder="ex: Camere sport, Accesorii PS5...">
           </div>
@@ -1161,6 +1165,7 @@ async function runGenerate(){
   const cat = document.getElementById('gCategory').value.trim();
   const price = document.getElementById('gPrice').value.trim();
   const pkg = document.getElementById('gPackage').value.trim();
+  const brand = document.getElementById('gBrand').value.trim();
   listingName = name;
   const platMap={emag:'eMAG Marketplace (Romania)',amazon:'Amazon',ebay:'eBay',site:'site propriu',universal:'marketplace universal'};
   const btn = document.getElementById('genMainBtn');
@@ -1183,6 +1188,7 @@ async function runGenerate(){
   const prompt=`Esti un specialist senior in copywriting pentru e-commerce din Romania. Genereaza un listing PREMIUM COMPLET folosind structura exacta de mai jos.
 
 PRODUS: ${name}
+BRAND: ${brand ? brand : 'Fara brand — NU mentiona niciun brand in listing'}
 PLATFORMA: ${platformInstructiuni}
 LIMBA OUTPUT: ${lang}
 ${cat?`CATEGORIE: ${cat}`:''}
@@ -1195,6 +1201,7 @@ ${pkg?`\nCONTINUT PACHET: ${pkg}`:''}
 
 REGULI CRITICE DE FORMAT — RESPECTA TOATE FARA EXCEPTIE:
 - ZERO diacritice (a,i,s,t,a fara semne)
+- ${brand ? `BRAND "${brand}": integreaza-l natural in titlu si in listing` : 'FARA BRAND: nu inventa si nu mentiona niciun brand — listing fara brand'}
 - ZERO emoji sau simboluri speciale (NU: ✓ ✅ ⚡ ★ • sau orice Unicode special)
 - ZERO asteriscuri pentru bold (NU scrie **text** sau *text*)
 - ZERO bare verticale pentru tabele (NU |col1|col2|)
