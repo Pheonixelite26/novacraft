@@ -279,7 +279,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 /* Responsive */
 @media(max-width:768px){
   /* NAV */
-  .navbar{padding:0 12px;height:58px;overflow:hidden}
+  .navbar{padding:0 12px;height:58px}
   .nav-right{gap:4px;flex-shrink:1;overflow:hidden}{gap:4px;flex-shrink:1;min-width:0}
   .nav-btn{padding:5px 8px;font-size:10px;white-space:nowrap}
   .lang-trigger{padding:5px 8px;gap:4px}
@@ -372,12 +372,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 }
 
 @media(max-width:480px){
-  .nav-right{gap:4px}
+  .nav-right{gap:4px;flex-shrink:1}
   .nav-btn{padding:5px 8px;font-size:10px;letter-spacing:0}
   .nav-btn.primary{padding:5px 10px;font-size:10px}
-  #navRegBtn{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #navLoginBtn{max-width:70px}
+  #navRegBtn{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #navLoginBtn{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navbar{padding:0 10px}
+  .lang-drop{right:-8px}
 }
 @media(max-width:360px){
   #navRegBtn{display:none}
