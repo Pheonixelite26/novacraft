@@ -32,8 +32,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(12,13,15,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between}
 .nav-logo{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-0.02em;cursor:pointer;user-select:none;background:linear-gradient(135deg,#e7aa51,#ffe499,#ac7031);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .nav-logo span{background:linear-gradient(135deg,#e7aa51,#ffe499,#ac7031);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.nav-right{display:flex;align-items:center;gap:10px;flex-shrink:1;min-width:0;overflow:hidden}
-.lang-picker{position:relative;user-select:none}
+.nav-right{display:flex;align-items:center;gap:10px;flex-shrink:1;min-width:0}
+.lang-picker{position:relative;user-select:none;overflow:visible}
 .lang-trigger{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px 6px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.04em;white-space:nowrap;border-radius:8px}
 .lang-trigger:hover{border-color:var(--accent)}
 .lang-trigger .lf{font-size:17px;line-height:1}
@@ -280,7 +280,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 @media(max-width:768px){
   /* NAV */
   .navbar{padding:0 12px;height:58px}
-  .nav-right{gap:4px;flex-shrink:1;overflow:hidden}{gap:4px;flex-shrink:1;min-width:0}
+  .nav-right{gap:4px;flex-shrink:1}
   .nav-btn{padding:5px 8px;font-size:10px;white-space:nowrap}
   .lang-trigger{padding:5px 8px;gap:4px}
   .lang-trigger .lcode{display:none}
