@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/app/dashboard.html" },
+    { "source": "/generator", "destination": "/app/generator.html" },
+    { "source": "/history", "destination": "/app/history.html" },
+    { "source": "/settings", "destination": "/app/settings.html" },
+    { "source": "/plans", "destination": "/app/plans.html" }
+  ]
+}
