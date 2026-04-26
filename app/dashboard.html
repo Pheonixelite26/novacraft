@@ -34,7 +34,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       <span data-i18n="navPlans">Planuri</span>
     </button>
-    <span class="nav-user-info" id="navEmail"></span>
+    <span class="nav-user-info" id="navEmail" onclick="window.location.href='/app/dashboard.html'" style="cursor:pointer" title="Mergi la profil"></span>
     <button class="nav-btn" onclick="doLogout()" id="navLogoutBtn" data-i18n="navLogout">Logout</button>
   </div>
 </nav>
@@ -44,7 +44,7 @@
   <div class="sidebar-section">
     <div class="sidebar-label" data-i18n="sidebarMenu">MENU</div>
     <div class="s-item" id="sn-dash" onclick="window.location.href='/app/dashboard.html'">
-      <span>🗂</span><span data-i18n="sidebarDash">Dashboard</span>
+      <span>👤</span><span data-i18n="sidebarDash">Profil</span>
     </div>
     <div class="s-item" id="sn-gen" onclick="window.location.href='/app/generator.html'">
       <span>⚡</span><span data-i18n="sidebarGen">Generator</span>
@@ -166,13 +166,16 @@ document.addEventListener('click', () => {
 })();
 async function loadDash(){
   if(!user) return;
-  const name = profile?.full_name || user.email.split('@')[0] || 'utilizator';
-  // Daca profile e null, incearca sa il reincarca
-  if (!profile) {
+  // Incearca sa obtina profilul daca nu e incarcat
+  if (!profile || !profile.full_name) {
     const { data: prof } = await db.from('profiles').select('*').eq('id', user.id).single();
     if (prof) profile = prof;
   }
-  const finalName = profile?.full_name || user.email.split('@')[0] || 'utilizator';
+  // Fallback chain: profil DB → metadata auth → email prefix → 'utilizator'
+  const finalName = profile?.full_name 
+    || user.user_metadata?.full_name 
+    || user.email?.split('@')[0] 
+    || 'utilizator';
   const {data:all, count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false});
   document.getElementById('stTotal').textContent = count||0;
   const plan = profile?.plan||'free';
