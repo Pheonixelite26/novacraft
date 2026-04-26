@@ -5,18 +5,33 @@
 const AI_KEY = '';
 
 // ============ SUPABASE ============
-// db este initializat per-pagina (global var)
+const _SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
+const _SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
+const db = window.supabase.createClient(_SB_URL, _SB_KEY);
 
 // ============ STATE ============
 let user = null, profile = null;
 
 // ============ AUTH ============
 async function initAuth(requireAuth = true) {
-  const { data: { session } } = await db.auth.getSession();
+  // Try getSession first
+  let { data: { session } } = await db.auth.getSession();
+  
+  // If no session, wait briefly and retry (handles timing edge cases)
+  if (!session) {
+    await new Promise(r => setTimeout(r, 300));
+    const retry = await db.auth.getSession();
+    session = retry.data?.session;
+  }
+
   if (session?.user) {
     user = session.user;
-    const { data: prof } = await db.from('profiles').select('*').eq('id', user.id).single();
-    profile = prof;
+    try {
+      const { data: prof } = await db.from('profiles').select('*').eq('id', user.id).single();
+      profile = prof;
+    } catch(e) {
+      console.warn('Profile fetch failed:', e);
+    }
     updateNavbar();
     return true;
   } else {
