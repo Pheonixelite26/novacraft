@@ -34,7 +34,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       <span data-i18n="navPlans">Planuri</span>
     </button>
-    <span class="nav-user-info" id="navEmail" onclick="window.location.href='/app/profile.html'" style="cursor:pointer" title="Profil"></span>
+    <span class="nav-user-info" id="navEmail" onclick="window.location.href='/profile'" style="cursor:pointer" title="Profil"></span>
     <button class="nav-btn" onclick="doLogout()" id="navLogoutBtn" data-i18n="navLogout">Logout</button>
   </div>
 </nav>
@@ -42,13 +42,13 @@
 <div class="sidebar">
   <div class="sidebar-section">
     <div class="sidebar-label" data-i18n="sidebarMenu">MENU</div>
-    <div class="s-item" id="sn-profile" onclick="window.location.href='/app/profile.html'"><span>👤</span><span>Profil</span></div>
-    <div class="s-item active" id="sn-gen" onclick="window.location.href='/app/generator.html'"><span>⚡</span><span data-i18n="sidebarGen">Generator</span></div>
-    <div class="s-item" id="sn-hist" onclick="window.location.href='/app/history.html'"><span>📋</span><span data-i18n="sidebarHist">Istoric</span></div>
+    <div class="s-item" id="sn-profile" onclick="window.location.href='/profile'"><span>👤</span><span>Profil</span></div>
+    <div class="s-item active" id="sn-gen" onclick="window.location.href='/generator'"><span>⚡</span><span data-i18n="sidebarGen">Generator</span></div>
+    <div class="s-item" id="sn-hist" onclick="window.location.href='/history'"><span>📋</span><span data-i18n="sidebarHist">Istoric</span></div>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label" data-i18n="sidebarCont">CONT</div>
-    <div class="s-item" id="sn-sett" onclick="window.location.href='/app/settings.html'"><span>⚙</span><span data-i18n="sidebarSett">Setari</span></div>
+    <div class="s-item" id="sn-sett" onclick="window.location.href='/settings'"><span>⚙</span><span data-i18n="sidebarSett">Setari</span></div>
   </div>
 </div>
   <div class="main">
@@ -58,7 +58,7 @@ id="p-gen">
         <div class="page-sub" data-i18n="genSub">Completeaza informatiile produsului — listing-ul complet se genereaza automat</div>
 
         <div class="limit-warn" id="limitWarn">
-          Ai atins limita planului FREE (3 listari/luna). <a onclick="window.location.href='/app/settings.html'">Upgrade la Pro →</a>
+          Ai atins limita planului FREE (3 listari/luna). <a onclick="window.location.href='/settings'">Upgrade la Pro →</a>
         </div>
 
         <div class="form-grid">
@@ -243,7 +243,7 @@ id="p-gen">
     <p>Ai folosit cele 3 traduceri gratuite pentru acest listing.<br>Ai nevoie de credite extra pentru traduceri suplimentare.<br><br>
     <strong style="color:#e7aa51">10 credite = 2€ &nbsp;·&nbsp; 50 credite = 8€ &nbsp;·&nbsp; 100 credite = 14€</strong>
     </p>
-    <button class="btn-xl accent" style="width:100%;font-size:14px;margin-bottom:10px" onclick="window.location.href='/app/settings.html';closeNoCredits()">Cumpara credite</button>
+    <button class="btn-xl accent" style="width:100%;font-size:14px;margin-bottom:10px" onclick="window.location.href='/settings';closeNoCredits()">Cumpara credite</button>
     <button class="out-btn" style="width:100%" onclick="closeNoCredits()">Inchide</button>
   </div>
 </div>
@@ -1273,7 +1273,7 @@ function toast(msg,type='ok'){
     <p>Ai folosit cele 3 traduceri gratuite pentru acest listing.<br>Ai nevoie de credite extra pentru traduceri suplimentare.<br><br>
     <strong style="color:#e7aa51">10 credite = 2€ &nbsp;·&nbsp; 50 credite = 8€ &nbsp;·&nbsp; 100 credite = 14€</strong>
     </p>
-    <button class="btn-xl accent" style="width:100%;font-size:14px;margin-bottom:10px" onclick="window.location.href='/app/settings.html'">Cumpara credite</button>
+    <button class="btn-xl accent" style="width:100%;font-size:14px;margin-bottom:10px" onclick="window.location.href='/settings'">Cumpara credite</button>
     <button class="out-btn" style="width:100%" onclick="closeNoCredits()">Inchide</button>
   </div>
 </div>

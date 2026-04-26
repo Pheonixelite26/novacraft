@@ -137,7 +137,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       <span data-i18n="navPlans">Planuri</span>
     </button>
-    <span class="nav-user-info" id="navEmail" onclick="window.location.href='/app/profile.html'" style="cursor:pointer" title="Profil"></span>
+    <span class="nav-user-info" id="navEmail" onclick="window.location.href='/profile'" style="cursor:pointer" title="Profil"></span>
     <button class="nav-btn" onclick="doLogout()" id="navLogoutBtn" data-i18n="navLogout">Logout</button>
   </div>
 </nav>
@@ -147,13 +147,13 @@
   <div class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label" data-i18n="sidebarMenu">MENU</div>
-      <div class="s-item" id="sn-profile" onclick="window.location.href='/app/profile.html'"><span>👤</span><span>Profil</span></div>
-      <div class="s-item" id="sn-gen" onclick="window.location.href='/app/generator.html'"><span>⚡</span><span data-i18n="sidebarGen">Generator</span></div>
-      <div class="s-item" id="sn-hist" onclick="window.location.href='/app/history.html'"><span>📋</span><span data-i18n="sidebarHist">Istoric</span></div>
+      <div class="s-item" id="sn-profile" onclick="window.location.href='/profile'"><span>👤</span><span>Profil</span></div>
+      <div class="s-item" id="sn-gen" onclick="window.location.href='/generator'"><span>⚡</span><span data-i18n="sidebarGen">Generator</span></div>
+      <div class="s-item" id="sn-hist" onclick="window.location.href='/history'"><span>📋</span><span data-i18n="sidebarHist">Istoric</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label" data-i18n="sidebarCont">CONT</div>
-      <div class="s-item" id="sn-sett" onclick="window.location.href='/app/settings.html'"><span>⚙</span><span data-i18n="sidebarSett">Setari</span></div>
+      <div class="s-item" id="sn-sett" onclick="window.location.href='/settings'"><span>⚙</span><span data-i18n="sidebarSett">Setari</span></div>
     </div>
   </div>
 
@@ -217,7 +217,7 @@
         <div class="plan-features" id="subFeatures"></div>
         <div style="margin-top:20px" class="profile-actions">
           <button class="btn-xl accent" style="font-size:13px;padding:10px 24px" onclick="openPlansModal()" id="managePlanBtn">⚡ Schimba planul</button>
-          <button class="btn-xl" style="font-size:13px;padding:10px 24px;background:transparent;border:1px solid var(--border)" onclick="window.location.href='/app/generator.html'">+ Listing Nou</button>
+          <button class="btn-xl" style="font-size:13px;padding:10px 24px;background:transparent;border:1px solid var(--border)" onclick="window.location.href='/generator'">+ Listing Nou</button>
         </div>
       </div>
 
