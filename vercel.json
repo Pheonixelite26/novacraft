@@ -4,6 +4,7 @@
     { "source": "/generator", "destination": "/app/generator.html" },
     { "source": "/history", "destination": "/app/history.html" },
     { "source": "/settings", "destination": "/app/settings.html" },
+    { "source": "/profile", "destination": "/app/profile.html" },
     { "source": "/plans", "destination": "/app/plans.html" }
   ]
 }
