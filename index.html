@@ -225,6 +225,12 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Initializeaza Supabase imediat dupa CDN
+  const SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
+  const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
+  db = window.supabase.createClient(SB_URL, SB_KEY);
+</script>
 <script src="/app/shared.js"></script>
 <script>
 function openModal(tab){
@@ -249,11 +255,6 @@ async function doLogin(){
   const btn = document.getElementById('btnLogin');
   btn.disabled=true; btn.textContent='Se conecteaza...';
   try {
-    if(!window.db && typeof db === 'undefined') {
-      btn.disabled=false; btn.textContent='Intra in cont';
-      err.style.display='block'; err.textContent='Eroare: serviciul nu e disponibil. Reincarca pagina.';
-      return;
-    }
     const {data, error} = await db.auth.signInWithPassword({email, password:pass});
     if(error){ 
       btn.disabled=false; btn.textContent='Intra in cont';
