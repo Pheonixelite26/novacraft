@@ -6,13 +6,8 @@ const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
 const AI_KEY = ''; // cheia e stocata securizat pe server
 
 // ============ SUPABASE ============
+// db este initializat in fiecare pagina dupa ce CDN-ul supabase e incarcat
 let db;
-try {
-  const { createClient } = window.supabase;
-  db = createClient(SB_URL, SB_KEY);
-} catch(e) {
-  console.error('Supabase init error:', e);
-}
 
 // ============ STATE ============
 let user = null, profile = null;

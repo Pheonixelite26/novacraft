@@ -375,10 +375,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 }
 
 @media(max-width:480px){
-  .navbar [onclick="goHome()"] img{height:52px;width:auto !important;object-fit:contain}
+  .navbar [onclick="goHome()"] img{width:260px;height:auto;display:block}
 }
 @media(max-width:360px){
-  .navbar [onclick="goHome()"] img{height:44px;width:auto !important;object-fit:contain}
+  .navbar [onclick="goHome()"] img{width:140px;height:auto;display:block}
 }
 
 @media(min-width:1400px){
