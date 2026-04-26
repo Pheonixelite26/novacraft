@@ -7,7 +7,11 @@ const AI_KEY = '';
 // ============ SUPABASE ============
 const _SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
 const _SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
-const db = window.supabase.createClient(_SB_URL, _SB_KEY);
+if (!window.supabase) {
+  console.error('Supabase CDN not loaded!');
+}
+const { createClient } = window.supabase;
+const db = createClient(_SB_URL, _SB_KEY);
 
 // ============ STATE ============
 let user = null, profile = null;
