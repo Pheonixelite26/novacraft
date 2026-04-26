@@ -1,13 +1,11 @@
 // ============ NOVACRAFT SHARED ============
 // Versiune: 2.0 | Multi-page architecture
 
-const SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
-const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
-const AI_KEY = ''; // cheia e stocata securizat pe server
+// Config e in fiecare pagina
+const AI_KEY = '';
 
 // ============ SUPABASE ============
-// db este initializat in fiecare pagina dupa ce CDN-ul supabase e incarcat
-let db;
+// db este initializat per-pagina (global var)
 
 // ============ STATE ============
 let user = null, profile = null;

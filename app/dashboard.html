@@ -144,9 +144,10 @@ id="p-dash">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
-  const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
-  db = window.supabase.createClient(SB_URL, SB_KEY);
+  var db = window.supabase.createClient(
+    'https://hkwzcpkamqavhsjivlxw.supabase.co',
+    'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK'
+  );
 </script>
 <script src="/app/shared.js"></script>
 <script>
@@ -165,13 +166,19 @@ document.addEventListener('click', () => {
 })();
 async function loadDash(){
   if(!user) return;
-  const name = profile?.full_name || user.email.split('@')[0];
+  const name = profile?.full_name || user.email.split('@')[0] || 'utilizator';
+  // Daca profile e null, incearca sa il reincarca
+  if (!profile) {
+    const { data: prof } = await db.from('profiles').select('*').eq('id', user.id).single();
+    if (prof) profile = prof;
+  }
+  const finalName = profile?.full_name || user.email.split('@')[0] || 'utilizator';
   const {data:all, count} = await db.from('listings').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false});
   document.getElementById('stTotal').textContent = count||0;
   const plan = profile?.plan||'free';
-  document.getElementById('greetName').textContent = name;
+  document.getElementById('greetName').textContent = finalName;
   if(plan==='admin'){
-    document.getElementById('greetName').innerHTML = name + ' <span style="font-size:11px;background:linear-gradient(135deg,#e7aa51,#ffe499);color:#000;padding:2px 8px;font-family:var(--mono);font-weight:700;vertical-align:middle">ADMIN</span>';
+    document.getElementById('greetName').innerHTML = finalName + ' <span style="font-size:11px;background:linear-gradient(135deg,#e7aa51,#ffe499);color:#000;padding:2px 8px;font-family:var(--mono);font-weight:700;vertical-align:middle">ADMIN</span>';
   }
   document.getElementById('stPlan').textContent = plan.toUpperCase();
   // Set crown per plan

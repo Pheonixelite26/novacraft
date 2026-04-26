@@ -121,9 +121,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SB_URL = 'https://hkwzcpkamqavhsjivlxw.supabase.co';
-  const SB_KEY = 'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK';
-  db = window.supabase.createClient(SB_URL, SB_KEY);
+  var db = window.supabase.createClient(
+    'https://hkwzcpkamqavhsjivlxw.supabase.co',
+    'sb_publishable_gAxqrbIMwZcNgFVPZ5M23A_9C1OiUtK'
+  );
 </script>
 <script src="/app/shared.js"></script>
 <script>
